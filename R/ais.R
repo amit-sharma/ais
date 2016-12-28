@@ -45,5 +45,6 @@ run = function(x, betas, fa, fb, transition, ...){
       log_pstar(f_as, f_bs, betas) - log_pstar(f_as, f_bs, c(0, betas[-K]))
     )
   )
+  #print("Completed run")
   w
 }

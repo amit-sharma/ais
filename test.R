@@ -5,6 +5,8 @@
 # I compare the AIS approach with a standard importance sampler and usually find
 # that AIS works better, depending on various details and how the random number
 # generator behaves.
+library(assertthat)
+library(parallel)
 
 set.seed(1)       # Seed the random number generator for reproducibility
 
@@ -38,7 +40,10 @@ ais_weights = AIS(
   fa = fa, 
   fb = fb, 
   transition = metropolis, 
-  jump = function(){rt(n, (df + dfa) / 2)}
+  #jump = function(){rt(n, (df + dfa) / 2)}
+  jump = function(sd){rnorm(n, mean=0, sd=sd)},
+  num_iterations_mcmc=10,
+  sd=0.1
 )
 
 # Collect importance weights using non-annealed importance sampling.
@@ -57,3 +62,6 @@ mean(is_weights)   # Should also be close to 1, but will usually be too low
 ########
 sd(ais_weights) / sqrt(length(ais_weights)) # Estimated standard error (hopefully reliable)
 sd(is_weights) / sqrt(length(is_weights))   # Estimated standard error (unreliable)
+
+## Adjusted sample size
+length(ais_weights)/(1+var(ais_weights))
