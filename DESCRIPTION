@@ -1,12 +1,11 @@
 Package: ais
 Type: Package
-Title: Annealed importance sampling
-Version: 0.0.1
-Date: 2014-12-12
-Author: David J. Harris
-Maintainer: David J. Harris <harry491@gmail.com>
-Description: More about what it does (maybe more than one line)
-License: MIT
-Imports: Rcpp (>= 0.11.3), parallel, assertthat
-Suggests: testthat
+Title: What the Package Does in One 'Title Case' Line
+Version: 1.0
+Date: 2016-12-30
+Author: Your Name
+Maintainer: Your Name <your@email.com>
+Description: One paragraph description of what the package does as one or more full sentences.
+License: GPL (>= 2)
+Imports: Rcpp (>= 0.12.8)
 LinkingTo: Rcpp

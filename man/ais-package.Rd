@@ -3,37 +3,32 @@
 \alias{ais}
 \docType{package}
 \title{
-What the package does (short line)
+  A short title line describing what the package does
 }
 \description{
-More about what it does (maybe more than one line)
-~~ A concise (1-5 lines) description of the package ~~
+  A more detailed description of what the package does. A length
+  of about one to five lines is recommended.
 }
 \details{
-\tabular{ll}{
-Package: \tab ais\cr
-Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2014-12-12\cr
-License: \tab GPL (>= 2)\cr
-}
-~~ An overview of how to use the package, including the most important functions ~~
+  This section should provide a more detailed overview of how to use the
+  package, including the most important functions.
 }
 \author{
-Your Name
+Your Name, email optional.
 
 Maintainer: Your Name <your@email.com>
 }
 \references{
-~~ Literature or other references for background information ~~
+  This optional section can contain literature or other references for
+  background information.
 }
-~~ Optionally other standard keywords, one per line, from file KEYWORDS in the R ~~
-~~ documentation directory ~~
 \keyword{ package }
 \seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+  Optional links to other man pages
 }
 \examples{
-%% ~~ simple examples of the most important functions ~~
+  \dontrun{
+     ## Optional simple examples of the most important functions
+     ## These can be in \dontrun{} and \donttest{} blocks.   
+  }
 }
