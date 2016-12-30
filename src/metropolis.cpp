@@ -131,9 +131,8 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
                            NumericVector other_params) {
   int n = x.size();
   NumericVector proposal(n);
-  double old_p, new_p;
+  double log_old_p, log_new_p, log_diff;
   double new_fa;
-  NumericVector rand_num;
   bool do_compute_old_p=true;
   for(int i =1; i<=num_iterations_mcmc; i++){
     for(int j=1; j<=9; j=j*3){
@@ -143,16 +142,20 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
       new_fa = faC(proposal);
       if(new_fa != -INFINITY){
         if(do_compute_old_p){
-          old_p = pow(exp(faC(x)),(1-beta)) * pow(exp(fbC(x, other_params)), beta);
+          log_old_p = faC(x)*(1-beta) + fbC(x, other_params)*beta;
           do_compute_old_p = false;
         }
-        new_p = pow(exp(new_fa), (1-beta)) * pow(exp(fbC(proposal, other_params)), beta);
-        //std::cout<<new_p/old_p<<std::endl;
-        if(new_p / old_p > runif(1)[0]){
-          for(int index=0; index<n; index++){
-            x[index] = proposal[index];
+        log_new_p = new_fa*(1-beta) + fbC(proposal, other_params)*beta;
+        
+        log_diff = log_new_p - log_old_p;
+        //std::cout<<new_p/old_p<<std::endl; 
+        if(log_new_p != -INFINITY){
+          if(exp(log_diff) > runif(1)[0]){
+            for(int index=0; index<n; index++){
+              x[index] = proposal[index];
+            }
+            do_compute_old_p=true;
           }
-          do_compute_old_p=true;
         }
       }
       

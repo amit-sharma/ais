@@ -13,7 +13,7 @@ DISTR="dirichlet"
 USE_CPP=TRUE
 powers_dirichlet = c(1, 2, 4, 5, 6, 1, 5, 8)
 
-K = 5000        # Number of annealed transitions per run
+K = 10000        # Number of annealed transitions per run
 replicates = 100  # Number of AIS runs
 
 if(DISTR=='dirichlet'){
@@ -27,7 +27,7 @@ if(DISTR=='dirichlet'){
 
 Main <- function(){
   # Inverse temperatures
-  betas = cooling(K, exponent = -8)
+  betas = cooling2(K, exponent = -8)
   
   # List of samples from the "easy" distribution
   samples = replicate(replicates, runif(n), simplify = FALSE)
@@ -43,7 +43,7 @@ Main <- function(){
       #jump = function(){rt(n, (df + dfa) / 2)}
       jump = function(x){rnorm(n, mean=0, sd=0.05*x)},
       #jump = function(m){rbeta(1, m/(1-m), 1)},
-      num_iterations_mcmc=10,
+      num_iterations_mcmc=20,
       other_params=powers_dirichlet,
       parallel=FALSE
     )
@@ -59,10 +59,10 @@ Main <- function(){
       betas = betas, 
       fa=faC,
       fb = fbC, 
-      transition = metropolisC, 
+      transition = metropolisC2, 
       num_iterations_mcmc=10,
       other_params=powers_dirichlet,
-      parallel=FALSE
+      parallel=TRUE
     )
     end_time=Sys.time()
     print(end_time-start_time)
