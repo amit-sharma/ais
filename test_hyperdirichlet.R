@@ -10,8 +10,10 @@ library(ais)
 
 set.seed(1)       # Seed the random number generator for reproducibility
 DISTR="dirichlet"
+USE_CPP=TRUE
+powers_dirichlet = c(1, 2, 4, 5, 6, 1, 5, 8)
 
-K = 10000        # Number of annealed transitions per run
+K = 5000        # Number of annealed transitions per run
 replicates = 100  # Number of AIS runs
 
 if(DISTR=='dirichlet'){
@@ -30,32 +32,48 @@ Main <- function(){
   # List of samples from the "easy" distribution
   samples = replicate(replicates, runif(n), simplify = FALSE)
   
-  # Collect importance weights using annealed importance sampling
-  ais_weights = AIS(
-    samples = samples, 
-    betas = betas, 
-    fa = fa, 
-    fb = fb, 
-    transition = metropolis, 
-    #jump = function(){rt(n, (df + dfa) / 2)}
-    jump = function(x){rnorm(n, mean=0, sd=0.05*x)},
-    #jump = function(m){rbeta(1, m/(1-m), 1)},
-    num_iterations_mcmc=10,
-    other_params=powers_dirichlet,
-    parallel=FALSE
-  )
-  start_time=Sys.time()
-  ais_weightsC = AISC(
-    samples = samples, 
-    betas = betas, 
-    fa=faC,
-    fb = fbC, 
-    transition = metropolisC2, 
-    num_iterations_mcmc=10,
-    parallel=FALSE
-  )
-  end_time=Sys.time()
-  print(end_time-start_time)
+  if(!USE_CPP){
+    # Collect importance weights using annealed importance sampling
+    ais_weights = AIS(
+      samples = samples, 
+      betas = betas, 
+      fa = fa, 
+      fb = fb, 
+      transition = metropolis, 
+      #jump = function(){rt(n, (df + dfa) / 2)}
+      jump = function(x){rnorm(n, mean=0, sd=0.05*x)},
+      #jump = function(m){rbeta(1, m/(1-m), 1)},
+      num_iterations_mcmc=10,
+      other_params=powers_dirichlet,
+      parallel=FALSE
+    )
+    print(paste("Integration (Mean of AIS weights)", mean(ais_weights)))  # Should be close to 1
+    print(paste("Std Error of the mean", sd(ais_weights) / sqrt(length(ais_weights)))) # Estimated standard error (hopefully reliable)
+    ## Adjusted sample size
+    print(paste("Actual, Adjusted sample size", length(ais_weights), length(ais_weights)/(1+var(ais_weights))))
+    
+  } else {
+    start_time=Sys.time()
+    ais_weightsC = AISC(
+      samples = samples, 
+      betas = betas, 
+      fa=faC,
+      fb = fbC, 
+      transition = metropolisC, 
+      num_iterations_mcmc=10,
+      other_params=powers_dirichlet,
+      parallel=FALSE
+    )
+    end_time=Sys.time()
+    print(end_time-start_time)
+  
+    print(paste("Integration (Mean of AIS weights)", mean(ais_weightsC)))  # Should be close to 1
+    print(paste("Std Error of the mean", sd(ais_weightsC) / sqrt(length(ais_weightsC)))) # Estimated standard error (hopefully reliable)
+    ## Adjusted sample size
+    print(paste("Actual, Adjusted sample size", length(ais_weightsC), length(ais_weightsC)/(1+var(ais_weightsC))))
+  } 
+  
+  
   
   # Collect importance weights using non-annealed importance sampling.
   # Note that this sampler collects K times more samples than the AIS sampler,
@@ -68,13 +86,5 @@ Main <- function(){
   
   # Results -----------------------------------------------------------------
   
-  print(paste("Integration (Mean of AIS weights)", mean(ais_weights)))  # Should be close to 1
-  print(paste("Std Error of the mean", sd(ais_weights) / sqrt(length(ais_weights)))) # Estimated standard error (hopefully reliable)
-  ## Adjusted sample size
-  print(paste("Actual, Adjusted sample size", length(ais_weights), length(ais_weights)/(1+var(ais_weights))))
   
-  print(paste("Integration (Mean of AIS weights)", mean(ais_weightsC)))  # Should be close to 1
-  print(paste("Std Error of the mean", sd(ais_weightsC) / sqrt(length(ais_weightsC)))) # Estimated standard error (hopefully reliable)
-  ## Adjusted sample size
-  print(paste("Actual, Adjusted sample size", length(ais_weightsC), length(ais_weightsC)/(1+var(ais_weightsC))))
 } 

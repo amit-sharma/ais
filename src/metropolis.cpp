@@ -87,8 +87,8 @@ double fbC(NumericVector e, NumericVector other_params){
     std::cout<<"ttr"<<e<<p<<std::endl;
   out = log_likelihoodC(p, powers_dirichlet);
   jacobian = JacobianC(e);
-  std::cout<<powers_dirichlet<<std::endl;
-  std::cout<<log(jacobian)<<" "<<out<<std::endl;
+  //std::cout<<powers_dirichlet<<std::endl;
+  //std::cout<<log(jacobian)<<" "<<out<<std::endl;
   return log(jacobian) + out;
 }
 
@@ -111,7 +111,7 @@ NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc,
           log_old_p = faC(x)*(1-beta) + fbC(x, other_params)*beta;
           log_new_p = new_fa*(1-beta) + fbC(proposal, other_params)*beta;
           log_diff = log_new_p - log_old_p;
-          std::cout<<log_new_p-log_old_p<<" "<<log_new_p<<log_old_p<<std::endl;
+          //std::cout<<log_new_p-log_old_p<<" "<<log_new_p<<log_old_p<<std::endl;
           if(log_new_p != -INFINITY){
             if(exp(log_diff) > runif(1)[0]){
               for(int index=0; index<n; index++){
