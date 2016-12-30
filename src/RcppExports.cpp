@@ -5,6 +5,91 @@
 
 using namespace Rcpp;
 
+// faC
+double faC(NumericVector e);
+RcppExport SEXP ais_faC(SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type e(eSEXP);
+    rcpp_result_gen = Rcpp::wrap(faC(e));
+    return rcpp_result_gen;
+END_RCPP
+}
+// JacobianC
+double JacobianC(NumericVector e);
+RcppExport SEXP ais_JacobianC(SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type e(eSEXP);
+    rcpp_result_gen = Rcpp::wrap(JacobianC(e));
+    return rcpp_result_gen;
+END_RCPP
+}
+// log_likelihoodC
+double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet);
+RcppExport SEXP ais_log_likelihoodC(SEXP thetaSEXP, SEXP powers_dirichletSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type powers_dirichlet(powers_dirichletSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_likelihoodC(theta, powers_dirichlet));
+    return rcpp_result_gen;
+END_RCPP
+}
+// e_to_pC
+NumericVector e_to_pC(NumericVector e);
+RcppExport SEXP ais_e_to_pC(SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type e(eSEXP);
+    rcpp_result_gen = Rcpp::wrap(e_to_pC(e));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fbC
+double fbC(NumericVector e, NumericVector other_params);
+RcppExport SEXP ais_fbC(SEXP eSEXP, SEXP other_paramsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type e(eSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    rcpp_result_gen = Rcpp::wrap(fbC(e, other_params));
+    return rcpp_result_gen;
+END_RCPP
+}
+// metropolisC
+NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
+RcppExport SEXP ais_metropolisC(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    rcpp_result_gen = Rcpp::wrap(metropolisC(x, beta, num_iterations_mcmc, other_params));
+    return rcpp_result_gen;
+END_RCPP
+}
+// metropolisC2
+NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
+RcppExport SEXP ais_metropolisC2(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    rcpp_result_gen = Rcpp::wrap(metropolisC2(x, beta, num_iterations_mcmc, other_params));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcpp_hello_world
 List rcpp_hello_world();
 RcppExport SEXP ais_rcpp_hello_world() {

@@ -1,4 +1,4 @@
-metropolis = function(x, fa, fb, beta, jump, num_iterations_mcmc,  ...){
+metropolis = function(x, fa, fb, beta, jump, num_iterations_mcmc, other_params, ...){
   do_change_old_p=TRUE
   log_old_p=NA
   log_new_p=NA
@@ -11,10 +11,10 @@ metropolis = function(x, fa, fb, beta, jump, num_iterations_mcmc,  ...){
       log_new_fa =fa(proposal)
       if(is.finite(log_new_fa)){
         if(do_change_old_p){
-          log_old_p = fa(x)*(1-beta) + fb(x)*beta
+          log_old_p = fa(x)*(1-beta) + fb(x,other_params)*beta
           do_change_old_p=FALSE
         }
-        log_new_fb = fb(proposal)
+        log_new_fb = fb(proposal, other_params)
         log_new_p = log_new_fa*(1-beta) + log_new_fb*beta
         log_diff = log_new_p - log_old_p      
         if(exp(log_diff) > runif(1)){

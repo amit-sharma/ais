@@ -12,7 +12,7 @@ using namespace Rcpp;
 //   http://gallery.rcpp.org/
 //
 //RNGScope scope;
-IntegerVector powers_dirichlet= IntegerVector::create(1, 2, 4, 5, 6, 1, 5, 8);
+//IntegerVector powers_dirichlet= IntegerVector::create(1, 2, 4, 5, 6, 1, 5, 8);
 
 // [[Rcpp::export]]
 double faC(NumericVector e){
@@ -56,33 +56,45 @@ double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet){
   log_like = log_like + log_normalizing_constant;
   return log_like;
 }
+
 // [[Rcpp::export]]
-double fbC(NumericVector e){
-  //Already checked in faC
- if(is_true(any(e<0)))
-    return -INFINITY ;
- if(is_true(any(e>1)))
-      return -INFINITY;
-  
+NumericVector e_to_pC(NumericVector e){
   int len_vec = e.size()+1;
   NumericVector p(len_vec);
   double mult=1;
-  double jacobian, out;
+  
   for(int i=0; i<len_vec-1; i++){
     p[i] = e[i]*mult;
     mult = mult*(1-e[i]);
   }
   p[len_vec-1]=mult;
+  return p;
+}
+
+// [[Rcpp::export]]
+double fbC(NumericVector e, NumericVector other_params){
+  //Already checked in faC
+ if(is_true(any(e<0)))
+    return -INFINITY ;
+ if(is_true(any(e>1)))
+      return -INFINITY;
+  double jacobian, out;
+  IntegerVector powers_dirichlet= as<IntegerVector>(other_params); // because we know that powers will be integers
+  NumericVector p;
+  p = e_to_pC(e);
+  
   if(is_true(any(p<0)))
     std::cout<<"ttr"<<e<<p<<std::endl;
   out = log_likelihoodC(p, powers_dirichlet);
   jacobian = JacobianC(e);
-  //std::cout<<log(jacobian)<<" "<<out<<std::endl;
+  std::cout<<powers_dirichlet<<std::endl;
+  std::cout<<log(jacobian)<<" "<<out<<std::endl;
   return log(jacobian) + out;
 }
 
 // [[Rcpp::export]]
-NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc) {
+NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, 
+                          NumericVector other_params) {
   int n = x.size();
   NumericVector proposal(n);
   double log_old_p, log_new_p;
@@ -96,8 +108,8 @@ NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc)
           //std::cout<<x<<"ggf"<<proposal<<std::endl;
           //std::cout<<faC(x)<<new_fa<<std::endl;
           //std::cout<<pow(exp(faC(x)),(1-beta));
-          log_old_p = faC(x)*(1-beta) + fbC(x)*beta;
-          log_new_p = new_fa*(1-beta) + fbC(proposal)*beta;
+          log_old_p = faC(x)*(1-beta) + fbC(x, other_params)*beta;
+          log_new_p = new_fa*(1-beta) + fbC(proposal, other_params)*beta;
           log_diff = log_new_p - log_old_p;
           std::cout<<log_new_p-log_old_p<<" "<<log_new_p<<log_old_p<<std::endl;
           if(log_new_p != -INFINITY){
@@ -115,7 +127,8 @@ NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc)
 }
 
 // [[Rcpp::export]]
-NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc) {
+NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc,
+                           NumericVector other_params) {
   int n = x.size();
   NumericVector proposal(n);
   double old_p, new_p;
@@ -130,10 +143,10 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
       new_fa = faC(proposal);
       if(new_fa != -INFINITY){
         if(do_compute_old_p){
-          old_p = pow(exp(faC(x)),(1-beta)) * pow(exp(fbC(x)), beta);
+          old_p = pow(exp(faC(x)),(1-beta)) * pow(exp(fbC(x, other_params)), beta);
           do_compute_old_p = false;
         }
-        new_p = pow(exp(new_fa), (1-beta)) * pow(exp(fbC(proposal)), beta);
+        new_p = pow(exp(new_fa), (1-beta)) * pow(exp(fbC(proposal, other_params)), beta);
         //std::cout<<new_p/old_p<<std::endl;
         if(new_p / old_p > runif(1)[0]){
           for(int index=0; index<n; index++){

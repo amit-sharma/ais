@@ -11,7 +11,6 @@ library(ais)
 set.seed(1)       # Seed the random number generator for reproducibility
 DISTR="dirichlet"
 
-powers_dirichlet= c(1, 2, 40, 5, 4, 12, 5, 11)
 K = 10000        # Number of annealed transitions per run
 replicates = 100  # Number of AIS runs
 
@@ -42,6 +41,7 @@ Main <- function(){
     jump = function(x){rnorm(n, mean=0, sd=0.05*x)},
     #jump = function(m){rbeta(1, m/(1-m), 1)},
     num_iterations_mcmc=10,
+    other_params=powers_dirichlet,
     parallel=FALSE
   )
   start_time=Sys.time()
