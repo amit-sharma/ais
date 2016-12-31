@@ -9,12 +9,12 @@ library(ais)
 
 
 set.seed(1)       # Seed the random number generator for reproducibility
-DISTR="dirichlet"
+DISTR="hyperdirichlet"
 USE_CPP=TRUE
-powers_dirichlet = c(1, 2, 4, 5, 6, 1, 5, 8)
+powers_dirichlet = c(1, 2, 4, 5, 6, 1,5, 8)
 
-K = 10000        # Number of annealed transitions per run
-replicates = 100  # Number of AIS runs
+K = 50000        # Number of annealed transitions per run
+replicates = 200  # Number of AIS runs
 
 if(DISTR=='dirichlet'){
   n=length(powers_dirichlet)-1 #            # Number of dimensions of distribution (1 less than 10)
@@ -43,7 +43,7 @@ Main <- function(){
       #jump = function(){rt(n, (df + dfa) / 2)}
       jump = function(x){rnorm(n, mean=0, sd=0.05*x)},
       #jump = function(m){rbeta(1, m/(1-m), 1)},
-      num_iterations_mcmc=20,
+      num_iterations_mcmc=50,
       other_params=powers_dirichlet,
       parallel=FALSE
     )
@@ -59,7 +59,7 @@ Main <- function(){
       betas = betas, 
       fa=faC,
       fb = fbC, 
-      transition = metropolisC2, 
+      transition = metropolisCbeta, 
       num_iterations_mcmc=10,
       other_params=powers_dirichlet,
       parallel=TRUE
@@ -67,8 +67,8 @@ Main <- function(){
     end_time=Sys.time()
     print(end_time-start_time)
   
-    print(paste("Integration (Mean of AIS weights)", mean(ais_weightsC)))  # Should be close to 1
-    print(paste("Std Error of the mean", sd(ais_weightsC) / sqrt(length(ais_weightsC)))) # Estimated standard error (hopefully reliable)
+    print(paste("Integration (Mean of AIS weights)", mean(ais_weightsC), mean(ais_weightsC, na.rm=TRUE)))  # Should be close to 1
+    print(paste("Std Error of the mean", sd(ais_weightsC) / sqrt(length(ais_weightsC)), sd(ais_weightsC, na.rm=TRUE) / sqrt(length(ais_weightsC)) )) # Estimated standard error (hopefully reliable)
     ## Adjusted sample size
     print(paste("Actual, Adjusted sample size", length(ais_weightsC), length(ais_weightsC)/(1+var(ais_weightsC))))
   } 
@@ -85,6 +85,6 @@ Main <- function(){
   
   
   # Results -----------------------------------------------------------------
-  
+  return(ais_weightsC)
   
 } 

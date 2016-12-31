@@ -5,6 +5,48 @@
 
 using namespace Rcpp;
 
+// metropolisC
+NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
+RcppExport SEXP ais_metropolisC(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    rcpp_result_gen = Rcpp::wrap(metropolisC(x, beta, num_iterations_mcmc, other_params));
+    return rcpp_result_gen;
+END_RCPP
+}
+// metropolisC2
+NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
+RcppExport SEXP ais_metropolisC2(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    rcpp_result_gen = Rcpp::wrap(metropolisC2(x, beta, num_iterations_mcmc, other_params));
+    return rcpp_result_gen;
+END_RCPP
+}
+// metropolisCbeta
+NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
+RcppExport SEXP ais_metropolisCbeta(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    rcpp_result_gen = Rcpp::wrap(metropolisCbeta(x, beta, num_iterations_mcmc, other_params));
+    return rcpp_result_gen;
+END_RCPP
+}
 // faC
 double faC(NumericVector e);
 RcppExport SEXP ais_faC(SEXP eSEXP) {
@@ -59,34 +101,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type e(eSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
     rcpp_result_gen = Rcpp::wrap(fbC(e, other_params));
-    return rcpp_result_gen;
-END_RCPP
-}
-// metropolisC
-NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
-RcppExport SEXP ais_metropolisC(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
-    rcpp_result_gen = Rcpp::wrap(metropolisC(x, beta, num_iterations_mcmc, other_params));
-    return rcpp_result_gen;
-END_RCPP
-}
-// metropolisC2
-NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
-RcppExport SEXP ais_metropolisC2(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
-    rcpp_result_gen = Rcpp::wrap(metropolisC2(x, beta, num_iterations_mcmc, other_params));
     return rcpp_result_gen;
 END_RCPP
 }

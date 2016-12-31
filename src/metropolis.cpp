@@ -2,6 +2,7 @@
 #include <cmath>
 using namespace Rcpp;
 
+#include "probability_functions.h"
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp 
 // function (or via the Source button on the editor toolbar). Learn
@@ -13,84 +14,6 @@ using namespace Rcpp;
 //
 //RNGScope scope;
 //IntegerVector powers_dirichlet= IntegerVector::create(1, 2, 4, 5, 6, 1, 5, 8);
-
-// [[Rcpp::export]]
-double faC(NumericVector e){
- if(is_true(any(e<0)))
-   return -INFINITY;
- if(is_true(any(e>1)))
-   return -INFINITY;
-  return 0;
-   
-}
-// [[Rcpp::export]]
-double JacobianC(NumericVector e){
-  double res=1;
-  int len_vec = e.size();
-  for(int i=0; i<len_vec-1; i++){
-    res = res * pow(1-e[i], len_vec-i-1);
-  }
-  return(res);
-}
-
-// [[Rcpp::export]]
-double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet){
-  double log_like, log_normalizing_constant;
-  log_like = sum(as<NumericVector>(powers_dirichlet) * log(theta));
-  log_normalizing_constant = lgamma(sum(powers_dirichlet+1)) - sum(lgamma(powers_dirichlet+1));
-   
-  // For hyperdirichlet
-  /*NumericVector theta_sum_terms(theta.size()/4);
-  for(int index=0;index < theta.size();index= index + 4){
-    theta_sum_terms[index/4] = theta[index] + theta[index+1] + theta[index+2] + theta[index+3];
-  }
-  
-  log_like=sum(as<NumericVector>(powers_dirichlet) * log(theta_sum_terms));
-  //NumericVector temp=log(theta_sum_terms);std::cout<<temp<<std::endl;
-  log_normalizing_constant = lgamma(sum(powers_dirichlet+4)) + 8*lgamma(4) - sum(lgamma(powers_dirichlet+4));
-   */
-  if(!(log_like >-90)){
-    //std::cout<<log_like<<powers_dirichlet<<std::endl;
-    //std::cout<<theta_sum_terms<<theta<<std::endl;
-  }
-  log_like = log_like + log_normalizing_constant;
-  return log_like;
-}
-
-// [[Rcpp::export]]
-NumericVector e_to_pC(NumericVector e){
-  int len_vec = e.size()+1;
-  NumericVector p(len_vec);
-  double mult=1;
-  
-  for(int i=0; i<len_vec-1; i++){
-    p[i] = e[i]*mult;
-    mult = mult*(1-e[i]);
-  }
-  p[len_vec-1]=mult;
-  return p;
-}
-
-// [[Rcpp::export]]
-double fbC(NumericVector e, NumericVector other_params){
-  //Already checked in faC
- if(is_true(any(e<0)))
-    return -INFINITY ;
- if(is_true(any(e>1)))
-      return -INFINITY;
-  double jacobian, out;
-  IntegerVector powers_dirichlet= as<IntegerVector>(other_params); // because we know that powers will be integers
-  NumericVector p;
-  p = e_to_pC(e);
-  
-  if(is_true(any(p<0)))
-    std::cout<<"ttr"<<e<<p<<std::endl;
-  out = log_likelihoodC(p, powers_dirichlet);
-  jacobian = JacobianC(e);
-  //std::cout<<powers_dirichlet<<std::endl;
-  //std::cout<<log(jacobian)<<" "<<out<<std::endl;
-  return log(jacobian) + out;
-}
 
 // [[Rcpp::export]]
 NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, 
@@ -134,6 +57,7 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
   double log_old_p, log_new_p, log_diff;
   double new_fa;
   bool do_compute_old_p=true;
+  int num_potential_changes=0;
   for(int i =1; i<=num_iterations_mcmc; i++){
     for(int j=1; j<=9; j=j*3){
       proposal = x + rnorm(n, 0, 0.05*j);
@@ -150,19 +74,81 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
         log_diff = log_new_p - log_old_p;
         //std::cout<<new_p/old_p<<std::endl; 
         if(log_new_p != -INFINITY){
+          num_potential_changes++;
           if(exp(log_diff) > runif(1)[0]){
             for(int index=0; index<n; index++){
               x[index] = proposal[index];
             }
             do_compute_old_p=true;
+            
           }
         }
       }
       
     }
   }
+  //std::cout<<num_potential_changes<<" Number of potential changes"<<std::endl;
   return x;
 }
+
+
+double dbeta_vectorized(NumericVector x, NumericVector a, NumericVector b, bool logscale){
+  //logscale is non-zero for outputting log
+  double log_g = 0;
+  for(int index=0;index<x.size();index++){
+    log_g = log_g + R::dbeta(x[index], a[index], b[index], logscale);
+  }
+  return log_g;
+  
+}
+// [[Rcpp::export]]
+NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
+                           NumericVector other_params) {
+  int n = x.size();
+  NumericVector proposal(n);
+  double log_old_p, log_new_p, log_diff;
+  double log_old_g, log_new_g;
+  double new_fa;
+  bool do_compute_old_p=true;
+  int num_potential_changes=0;
+  for(int i =1; i<=num_iterations_mcmc; i++){
+    for(int j=1000; j<=100000; j=j*10){
+      for(int index=0;index<n;index++){
+        proposal[index] = rbeta(1, j*x[index], j*(1-x[index]))[0];
+      }
+      //std::cout<<x<<"ggf"<<proposal<<std::endl;
+      //std::cout<<pow(exp(faC(x)),(1-beta));
+      new_fa = faC(proposal);
+      if(new_fa != -INFINITY){
+        if(do_compute_old_p){
+          log_old_p = faC(x)*(1-beta) + fbC(x, other_params)*beta;
+          do_compute_old_p = false;
+        }
+        log_new_p = new_fa*(1-beta) + fbC(proposal, other_params)*beta;
+        log_new_g = dbeta_vectorized(proposal, j*x, j*(1-x), true);
+        log_old_g = dbeta_vectorized(x, j*proposal, j*(1-proposal), true);
+        log_diff = (log_new_p - log_old_p) + (log_old_g -log_new_g);
+        //std::cout<<new_p/old_p<<std::endl; 
+        if(log_new_p != -INFINITY){
+          num_potential_changes++;
+          if(exp(log_diff) > runif(1)[0]){
+            for(int index=0; index<n; index++){
+              x[index] = proposal[index];
+            }
+            do_compute_old_p=true;
+            
+          }
+        } /*else {
+          std::cout<<log_new_p<<new_fa<<" "<<fbC(proposal, other_params)<<log_old_p<<"  gf  "<<proposal<<std::endl;
+        }*/
+      }
+      
+    }
+  }
+  //std::cout<<num_potential_changes<<" Number of potential changes"<<std::endl;
+  return x;
+}
+
 
 /*** R code
 log_likelihood <- function(theta) {
