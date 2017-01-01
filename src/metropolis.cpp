@@ -101,11 +101,22 @@ double dbeta_vectorized(NumericVector x, NumericVector a, NumericVector b, bool 
   return log_g;
   
 }
+NumericVector rproposal_distr(NumericVector x, int n, double mult){
+  NumericVector params1 = mult*x;
+  NumericVector params2 = mult*(1-x);
+  NumericVector proposal(n);
+  for(int index=0;index<n;index++){
+    proposal[index] = rbeta(1, params1[index],params2[index])[0];
+  }
+  return proposal;
+  
+}
+
 // [[Rcpp::export]]
 NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
                            NumericVector other_params) {
   int n = x.size();
-  NumericVector proposal(n);
+  NumericVector proposal;
   double log_old_p, log_new_p, log_diff;
   double log_old_g, log_new_g;
   double new_fa;
@@ -113,9 +124,7 @@ NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_m
   int num_potential_changes=0;
   for(int i =1; i<=num_iterations_mcmc; i++){
     for(int j=1000; j<=100000; j=j*10){
-      for(int index=0;index<n;index++){
-        proposal[index] = rbeta(1, j*x[index], j*(1-x[index]))[0];
-      }
+      proposal = rproposal_distr(x, n, j);
       //std::cout<<x<<"ggf"<<proposal<<std::endl;
       //std::cout<<pow(exp(faC(x)),(1-beta));
       new_fa = faC(proposal);

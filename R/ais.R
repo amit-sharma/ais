@@ -1,10 +1,10 @@
-AIS = function(samples, betas, fa, fb, transition, num_iterations_mcmc,parallel = TRUE, other_params=NULL,  ...){
+AIS = function(samples, betas, fa, fb, transition, num_iterations_mcmc,parallel = TRUE, num_cores=1, other_params=NULL,  ...){
   run_fn <- function(x){
     run(x, betas = betas, fa = fa, fb = fb, transition = transition, num_iterations_mcmc=num_iterations_mcmc, 
         other_params=other_params, ...)
   }
   if(parallel){
-    res = mclapply(samples,run_fn, mc.cores=4)
+    res = mclapply(samples,run_fn, mc.cores=num_cores)
   }else{
     res = lapply(samples, run_fn)
   }
@@ -49,13 +49,13 @@ run = function(x, betas, fa, fb, transition, other_params,  ...){
 
 
 AISC <- function(samples, betas, fa, fb, transition, num_iterations_mcmc, other_params=NULL, 
-                parallel = TRUE, ...){
+                parallel = TRUE, num_cores=1, ...){
   run_fn <- function(x){
     runC(x, betas = betas, fa = fa, fb = fb, transition = transition,num_iterations_mcmc=num_iterations_mcmc,
          other_params=other_params, ...)
   }
   if(parallel){
-    res = mclapply(samples,run_fn, mc.cores=4)
+    res = mclapply(samples,run_fn, mc.cores=num_cores)
   }else{
     res = lapply(samples, run_fn)
   }
