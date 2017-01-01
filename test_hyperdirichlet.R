@@ -4,18 +4,21 @@
 library(assertthat)
 library(parallel)
 
+library(Rcpp)
+library(inline)
+
 library(hyperdirichlet)
 library(ais)
 
-#TODO figure out why NaN appear still. Also lower variance if you can. Also test with larger exponent.
 
 set.seed(1)       # Seed the random number generator for reproducibility
 DISTR="hyperdirichlet"
 USE_CPP=TRUE
+CUSTOM_PROPOSAL=FALSE
 powers_dirichlet = c(1, 2, 4, 5, 6, 1,5, 8)
 
-K = 50000        # Number of annealed transitions per run
-replicates = 200  # Number of AIS runs
+K = 10000      # Number of annealed transitions per run, default 10000
+replicates = 200  # Number of AIS runs, default 200
 
 if(DISTR=='dirichlet'){
   n=length(powers_dirichlet)-1 #            # Number of dimensions of distribution (1 less than 10)
@@ -55,6 +58,15 @@ Main <- function(){
     
   } else {
     start_time=Sys.time()
+    
+    if(CUSTOM_PROPOSAL==TRUE){
+      sourceCpp("distr_functions.cpp")
+      rproposal = putFunPtrInXPtrCustom()
+    } else {
+      rproposal = putFunPtrInXPtr("default")  #FROM AIS
+      dproposal_cond = getCondDensityFuncXPtr("default")
+    }
+    
     ais_weightsC = AISC(
       samples = samples, 
       betas = betas, 
@@ -62,8 +74,11 @@ Main <- function(){
       fb = fbC, 
       transition = metropolisCbeta, 
       num_iterations_mcmc=10,
+      proposal_sample_fn = rproposal,
+      proposal_cond_density_fn = dproposal_cond, 
       other_params=powers_dirichlet,
-      parallel=TRUE
+      parallel=TRUE,
+      num_cores=1
     )
     end_time=Sys.time()
     print(end_time-start_time)

@@ -9,8 +9,8 @@ metropolisC2 <- function(x, beta, num_iterations_mcmc, other_params) {
     .Call('ais_metropolisC2', PACKAGE = 'ais', x, beta, num_iterations_mcmc, other_params)
 }
 
-metropolisCbeta <- function(x, beta, num_iterations_mcmc, other_params) {
-    .Call('ais_metropolisCbeta', PACKAGE = 'ais', x, beta, num_iterations_mcmc, other_params)
+metropolisCbeta <- function(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params) {
+    .Call('ais_metropolisCbeta', PACKAGE = 'ais', x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params)
 }
 
 faC <- function(e) {
@@ -31,6 +31,22 @@ e_to_pC <- function(e) {
 
 fbC <- function(e, other_params) {
     .Call('ais_fbC', PACKAGE = 'ais', e, other_params)
+}
+
+rproposal_distr <- function(x, n, mult) {
+    .Call('ais_rproposal_distr', PACKAGE = 'ais', x, n, mult)
+}
+
+dbeta_cond_distr <- function(x, y, n, mult) {
+    .Call('ais_dbeta_cond_distr', PACKAGE = 'ais', x, y, n, mult)
+}
+
+putFunPtrInXPtr <- function(distr_name) {
+    .Call('ais_putFunPtrInXPtr', PACKAGE = 'ais', distr_name)
+}
+
+getCondDensityFuncXPtr <- function(distr_name) {
+    .Call('ais_getCondDensityFuncXPtr', PACKAGE = 'ais', distr_name)
 }
 
 rcpp_hello_world <- function() {

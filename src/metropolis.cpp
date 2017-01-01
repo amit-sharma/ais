@@ -2,6 +2,7 @@
 #include <cmath>
 using namespace Rcpp;
 
+#include "ais_types.h"
 #include "probability_functions.h"
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp 
@@ -14,6 +15,7 @@ using namespace Rcpp;
 //
 //RNGScope scope;
 //IntegerVector powers_dirichlet= IntegerVector::create(1, 2, 4, 5, 6, 1, 5, 8);
+//typedef NumericVector (*funcPtr)(NumericVector x , int j, double mult);
 
 // [[Rcpp::export]]
 NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, 
@@ -92,30 +94,61 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
 }
 
 
-double dbeta_vectorized(NumericVector x, NumericVector a, NumericVector b, bool logscale){
-  //logscale is non-zero for outputting log
-  double log_g = 0;
-  for(int index=0;index<x.size();index++){
-    log_g = log_g + R::dbeta(x[index], a[index], b[index], logscale);
-  }
-  return log_g;
-  
+// From http://gallery.rcpp.org/articles/passing-cpp-function-pointers/
+
+/*
+// [[Rcpp::export]]
+XPtr<funcPtr> putFunPtrInXPtr(std::string fstr) {
+  if (fstr == "fun1")
+    return(XPtr<funcPtr>(new funcPtr(&rproposal_distr)));
+  else
+    return XPtr<funcPtr>(R_NilValue); // runtime error as NULL no XPtr
 }
+ */
+
+/*
+// [[Rcpp::export]]
+NumericVector callViaXPtr(const NumericVector x, SEXP xpsexp, int n, double mult) {
+  XPtr<funcPtr> xpfun(xpsexp);
+  funcPtr fun = *xpfun;
+  NumericVector y = fun(x, n, mult);
+  return (y);
+}
+*/
 // [[Rcpp::export]]
 NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
+                              SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp,
                            NumericVector other_params) {
+  XPtr<rDistrFnPtr> xpfun_r(rproposal_fn_xpsexp);
+  rDistrFnPtr rproposal_distr = *xpfun_r;
+  
+  XPtr<dCondDensityFnPtr> xpfun_d(dproposal_fn_xpsexp);
+  dCondDensityFnPtr dproposal_distr = *xpfun_d;
+  
   int n = x.size();
-  NumericVector proposal(n);
+  //NumericVector proposal(n);
+  NumericVector proposal;
   double log_old_p, log_new_p, log_diff;
   double log_old_g, log_new_g;
   double new_fa;
+  
   bool do_compute_old_p=true;
   int num_potential_changes=0;
   for(int i =1; i<=num_iterations_mcmc; i++){
-    for(int j=1000; j<=100000; j=j*10){
-      for(int index=0;index<n;index++){
-        proposal[index] = rbeta(1, j*x[index], j*(1-x[index]))[0];
-      }
+    for(int j=1000; j<=10000; j=j*10){ // default: 10^3,10^5
+        /*NumericVector params1 = j*x;
+        NumericVector params2 =j*(1-x);
+        for(int index=0;index<n;index++){
+          proposal[index] = rbeta(1, params1[index],params2[index])[0];
+        }
+        */
+ 
+      //proposal = rproposal_distr(x, n, j);
+      //XPtr<funcPtr> xpfun = XPtr<funcPtr>(new funcPtr(&rproposal_distr));//putFunPtrInXPtr(funname);
+      //funcPtr fun = *xpfun;
+      
+      proposal = rproposal_distr(x,n,j);
+      //proposal = callViaXPtr(x, proposal_fn,n,j);
       //std::cout<<x<<"ggf"<<proposal<<std::endl;
       //std::cout<<pow(exp(faC(x)),(1-beta));
       new_fa = faC(proposal);
@@ -125,8 +158,8 @@ NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_m
           do_compute_old_p = false;
         }
         log_new_p = new_fa*(1-beta) + fbC(proposal, other_params)*beta;
-        log_new_g = dbeta_vectorized(proposal, j*x, j*(1-x), true);
-        log_old_g = dbeta_vectorized(x, j*proposal, j*(1-proposal), true);
+        log_new_g = dproposal_distr(proposal, x, n, j);
+        log_old_g = dproposal_distr(x, proposal, n, j);
         log_diff = (log_new_p - log_old_p) + (log_old_g -log_new_g);
         //std::cout<<new_p/old_p<<std::endl; 
         if(log_new_p != -INFINITY){
