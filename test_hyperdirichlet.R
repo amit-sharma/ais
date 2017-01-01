@@ -7,6 +7,7 @@ library(parallel)
 library(hyperdirichlet)
 library(ais)
 
+#TODO figure out why NaN appear still. Also lower variance if you can. Also test with larger exponent.
 
 set.seed(1)       # Seed the random number generator for reproducibility
 DISTR="hyperdirichlet"
