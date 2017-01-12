@@ -73,6 +73,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// logJacobianC
+double logJacobianC(NumericVector e);
+RcppExport SEXP ais_logJacobianC(SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type e(eSEXP);
+    rcpp_result_gen = Rcpp::wrap(logJacobianC(e));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_likelihoodC
 double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet);
 RcppExport SEXP ais_log_likelihoodC(SEXP thetaSEXP, SEXP powers_dirichletSEXP) {

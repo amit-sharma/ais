@@ -21,6 +21,10 @@ JacobianC <- function(e) {
     .Call('ais_JacobianC', PACKAGE = 'ais', e)
 }
 
+logJacobianC <- function(e) {
+    .Call('ais_logJacobianC', PACKAGE = 'ais', e)
+}
+
 log_likelihoodC <- function(theta, powers_dirichlet) {
     .Call('ais_log_likelihoodC', PACKAGE = 'ais', theta, powers_dirichlet)
 }
