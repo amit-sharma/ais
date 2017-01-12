@@ -39,7 +39,7 @@ fb <- function(e, other_params){
   out <- log_likelihood(p, powers_dirichlet = other_params)
   #out <- dhyperdirichlet(p,parameters, log=TRUE)
   #return(Jacobian(e)*exp(out))
-  print(paste(log(Jacobian(e)), out))
+  #print(paste(log(Jacobian(e)), out))
   return(log(Jacobian(e))+ out)
 }
 

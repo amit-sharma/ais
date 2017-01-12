@@ -28,11 +28,12 @@ run = function(x, betas, fa, fb, transition, other_params,  ...){
   
   for(k in 1:K){
     # Sample at new temperature
-    x = transition(x, fa, fb, betas[k], ...)
+    x = transition(x, fa, fb, betas[k], other_params, ...)
     
     # save negative energies under both distributions
     f_as[k] = fa(x)
     f_bs[k] = fb(x,other_params)
+    print(paste(f_as[k],f_bs[k]))
   }
   
   # Betas in numerator goes from 1:K
@@ -48,6 +49,25 @@ run = function(x, betas, fa, fb, transition, other_params,  ...){
 
 
 
+#' Title
+#'
+#' @param samples 
+#' @param betas  Temperature vector for annealing
+#' @param fa 
+#' @param fb 
+#' @param transition 
+#' @param num_iterations_mcmc 
+#' @param proposal_sample_fn 
+#' @param proposal_cond_density_fn 
+#' @param other_params 
+#' @param parallel 
+#' @param num_cores 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 AISC <- function(samples, betas, fa, fb, transition, num_iterations_mcmc, 
                  proposal_sample_fn, proposal_cond_density_fn, 
                  other_params=NULL, 
@@ -107,6 +127,7 @@ runC = function(x, betas, fa, fb, transition, num_iterations_mcmc,
     # save negative energies under both distributions
     f_as[k] = fa(x)
     f_bs[k] = fb(x,other_params)
+    #print(paste(f_as[k],f_bs[k]))
   }
   
   # Betas in numerator goes from 1:K

@@ -21,6 +21,17 @@ double JacobianC(NumericVector e){
 }
 
 // [[Rcpp::export]]
+double logJacobianC(NumericVector e){
+  double logres=0;
+  int len_vec = e.size();
+  for(int i=0; i<len_vec-1; i++){
+    logres = logres +  (len_vec-i-1)*log(1-e[i]);
+  }
+  return(logres);
+}
+
+
+// [[Rcpp::export]]
 double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet){
   double log_like, log_normalizing_constant;
   
@@ -69,7 +80,9 @@ double fbC(NumericVector e, NumericVector other_params){
     return -INFINITY ;
  if(is_true(any(e>1)))
       return -INFINITY;
-  double jacobian, out;
+ //if(is_true(any(e==1)))std::cout<<e<<std::endl;
+ 
+  double log_jacobian, out;//jacobian
   IntegerVector powers_dirichlet= as<IntegerVector>(other_params); // because we know that powers will be integers
   NumericVector p;
   p = e_to_pC(e);
@@ -78,8 +91,10 @@ double fbC(NumericVector e, NumericVector other_params){
     std::cout<<"ttr"<<e<<p<<std::endl;
   out = log_likelihoodC(p, powers_dirichlet);
   // Note: Jacobian will always be zero if one of the e is exactly 1.
-  jacobian = JacobianC(e);
+  //jacobian = JacobianC(e);
+  log_jacobian = logJacobianC(e);
+  //if(jacobian==0) std::cout<<log_jacobian+out<<std::endl;
   //std::cout<<powers_dirichlet<<std::endl;
   //std::cout<<log(jacobian)<<" "<<out<<std::endl;
-  return log(jacobian) + out;
+  return log_jacobian + out;
 }
