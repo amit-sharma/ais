@@ -8,7 +8,7 @@
 using namespace Rcpp;
 
 // metropolisC
-NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
+NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, List other_params);
 RcppExport SEXP ais_metropolisC(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -16,13 +16,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    Rcpp::traits::input_parameter< List >::type other_params(other_paramsSEXP);
     rcpp_result_gen = Rcpp::wrap(metropolisC(x, beta, num_iterations_mcmc, other_params));
     return rcpp_result_gen;
 END_RCPP
 }
 // metropolisC2
-NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc, NumericVector other_params);
+NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc, List other_params);
 RcppExport SEXP ais_metropolisC2(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP other_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -30,13 +30,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    Rcpp::traits::input_parameter< List >::type other_params(other_paramsSEXP);
     rcpp_result_gen = Rcpp::wrap(metropolisC2(x, beta, num_iterations_mcmc, other_params));
     return rcpp_result_gen;
 END_RCPP
 }
 // metropolisCbeta
-NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc, SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp, NumericVector other_params);
+NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc, SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp, List other_params);
 RcppExport SEXP ais_metropolisCbeta(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP rproposal_fn_xpsexpSEXP, SEXP dproposal_fn_xpsexpSEXP, SEXP other_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -46,7 +46,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type num_iterations_mcmc(num_iterations_mcmcSEXP);
     Rcpp::traits::input_parameter< SEXP >::type rproposal_fn_xpsexp(rproposal_fn_xpsexpSEXP);
     Rcpp::traits::input_parameter< SEXP >::type dproposal_fn_xpsexp(dproposal_fn_xpsexpSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    Rcpp::traits::input_parameter< List >::type other_params(other_paramsSEXP);
     rcpp_result_gen = Rcpp::wrap(metropolisCbeta(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params));
     return rcpp_result_gen;
 END_RCPP
@@ -85,14 +85,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // log_likelihoodC
-double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet);
-RcppExport SEXP ais_log_likelihoodC(SEXP thetaSEXP, SEXP powers_dirichletSEXP) {
+double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet, Rcpp::List theta_sum_list);
+RcppExport SEXP ais_log_likelihoodC(SEXP thetaSEXP, SEXP powers_dirichletSEXP, SEXP theta_sum_listSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type powers_dirichlet(powers_dirichletSEXP);
-    rcpp_result_gen = Rcpp::wrap(log_likelihoodC(theta, powers_dirichlet));
+    Rcpp::traits::input_parameter< Rcpp::List >::type theta_sum_list(theta_sum_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(log_likelihoodC(theta, powers_dirichlet, theta_sum_list));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -108,13 +109,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // fbC
-double fbC(NumericVector e, NumericVector other_params);
+double fbC(NumericVector e, List other_params);
 RcppExport SEXP ais_fbC(SEXP eSEXP, SEXP other_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type e(eSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type other_params(other_paramsSEXP);
+    Rcpp::traits::input_parameter< List >::type other_params(other_paramsSEXP);
     rcpp_result_gen = Rcpp::wrap(fbC(e, other_params));
     return rcpp_result_gen;
 END_RCPP

@@ -5,6 +5,6 @@
 using namespace Rcpp;
 
 double faC(NumericVector e);
-double fbC(NumericVector e, NumericVector other_params);
+double fbC(NumericVector e, List other_params);
 
 #endif

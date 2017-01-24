@@ -32,24 +32,52 @@ double logJacobianC(NumericVector e){
 
 
 // [[Rcpp::export]]
-double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet){
-  double log_like, log_normalizing_constant;
+double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet, Rcpp::List theta_sum_list){
+  double log_like, log_normalizing_constant=0, temp_sum=0, curr_num_vars=0;
   
   /*
   log_like = sum(as<NumericVector>(powers_dirichlet) * log(theta));
   log_normalizing_constant = lgamma(sum(powers_dirichlet+1)) - sum(lgamma(powers_dirichlet+1));
-   */
+  */
   
   
   // For hyperdirichlet
-  NumericVector theta_sum_terms(theta.size()/4);
+  
+  int num_terms = theta_sum_list.size();
+  NumericVector theta_sum_terms(num_terms);
+  int ii;
+  for(ii=0; ii<num_terms;ii++){
+    theta_sum_terms[ii] = 0;
+    Rcpp::IntegerVector theta_indices = as<IntegerVector>(theta_sum_list[ii]);
+    curr_num_vars = theta_indices.size();
+    
+    //For normalizing constant
+    temp_sum += (powers_dirichlet[ii] + curr_num_vars );
+    log_normalizing_constant +=  (lgamma(curr_num_vars) - lgamma(powers_dirichlet[ii]+curr_num_vars)); 
+    
+    for(int index=0;index < curr_num_vars;index++){
+      theta_sum_terms[ii] += theta[theta_indices[index]];
+    }
+   }
+  log_normalizing_constant += lgamma(temp_sum);
+  
+   /*
   for(int index=0;index < theta.size();index= index + 4){
     theta_sum_terms[index/4] = theta[index] + theta[index+1] + theta[index+2] + theta[index+3];
   }
-  
+  */
   log_like=sum(as<NumericVector>(powers_dirichlet) * log(theta_sum_terms));
   //NumericVector temp=log(theta_sum_terms);std::cout<<temp<<std::endl;
-  log_normalizing_constant = lgamma(sum(powers_dirichlet+4)) + theta_sum_terms.size()*lgamma(4) - sum(lgamma(powers_dirichlet+4));
+  
+  //prior code
+  /*log_normalizing_constant = lgamma(sum(powers_dirichlet+4)) + theta_sum_terms.size()*lgamma(4) - sum(lgamma(powers_dirichlet+4));*/ 
+/*  for(ii=0;ii<num_terms;ii++){
+    curr_num_vars = (as<IntegerVector>(theta_sum_list[ii])).size();
+    temp_sum += (powers_dirichlet[ii] + curr_num_vars );
+    log_normalizing_constant +=  (lgamma(curr_num_vars) - lgamma(powers_dirichlet[ii]+curr_num_vars)); 
+  }
+  log_normalizing_constant += lgamma(temp_sum);
+ */
   
   if(!(log_like >-90)){
     //std::cout<<log_like<<powers_dirichlet<<std::endl;
@@ -74,22 +102,26 @@ NumericVector e_to_pC(NumericVector e){
 }
 
 // [[Rcpp::export]]
-double fbC(NumericVector e, NumericVector other_params){
+double fbC(NumericVector e, List other_params){
   //Already checked in faC
  if(is_true(any(e<0)))
     return -INFINITY ;
  if(is_true(any(e>1)))
       return -INFINITY;
  //if(is_true(any(e==1)))std::cout<<e<<std::endl;
- 
+  
+  //processing list
+  IntegerVector powers_dirichlet= as<IntegerVector>(other_params["powers"]);
+  Rcpp:List theta_sum_list = other_params["param_structure"];
+  
   double log_jacobian, out;//jacobian
-  IntegerVector powers_dirichlet= as<IntegerVector>(other_params); // because we know that powers will be integers
+   // because we know that powers will be integers
   NumericVector p;
   p = e_to_pC(e);
   
   if(is_true(any(p<0)))
     std::cout<<"ttr"<<e<<p<<std::endl;
-  out = log_likelihoodC(p, powers_dirichlet);
+  out = log_likelihoodC(p, powers_dirichlet, theta_sum_list);
   // Note: Jacobian will always be zero if one of the e is exactly 1.
   //jacobian = JacobianC(e);
   log_jacobian = logJacobianC(e);

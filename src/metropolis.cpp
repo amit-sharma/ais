@@ -19,7 +19,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, 
-                          NumericVector other_params) {
+                          List other_params) {
   int n = x.size();
   NumericVector proposal(n);
   double log_old_p, log_new_p;
@@ -53,7 +53,7 @@ NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc,
 
 // [[Rcpp::export]]
 NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc,
-                           NumericVector other_params) {
+                           List other_params) {
   int n = x.size();
   NumericVector proposal(n);
   double log_old_p, log_new_p, log_diff;
@@ -118,7 +118,7 @@ NumericVector callViaXPtr(const NumericVector x, SEXP xpsexp, int n, double mult
 // [[Rcpp::export]]
 NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
                               SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp,
-                           NumericVector other_params) {
+                           List other_params) {
   XPtr<rDistrFnPtr> xpfun_r(rproposal_fn_xpsexp);
   rDistrFnPtr rproposal_distr = *xpfun_r;
   
