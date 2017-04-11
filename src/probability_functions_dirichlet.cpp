@@ -83,7 +83,9 @@ double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet, Rcpp
     //std::cout<<log_like<<powers_dirichlet<<std::endl;
     //std::cout<<theta_sum_terms<<theta<<std::endl;
   }
-  log_like = log_like + log_normalizing_constant;
+  
+  // Commenting this out when we no longer need normalization..that is only needed for test_hyperdirichlet
+  //log_like = log_like + log_normalizing_constant;
   return log_like;
 }
 

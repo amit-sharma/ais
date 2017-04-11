@@ -17,8 +17,8 @@ USE_CPP=TRUE
 CUSTOM_PROPOSAL=FALSE
 powers_dirichlet = c(1, 20, 400, 5, 60, 1,5000, 80)
 
-K = 1000     # Number of annealed transitions per run, default 10000
-replicates = 20  # Number of AIS runs, default 200
+K = 10000     # Number of annealed transitions per run, default 10000
+replicates = 200  # Number of AIS runs, default 200
 
 if(DISTR=='dirichlet'){
   n=length(powers_dirichlet)-1 #            # Number of dimensions of distribution (1 less than 10)
@@ -87,7 +87,7 @@ Main <- function(){
       proposal_sample_fn = rproposal,
       proposal_cond_density_fn = dproposal_cond, 
       other_params=list(powers=powers_dirichlet, param_structure=theta_sum_vec),
-      parallel=F,
+      parallel=T,
       num_cores=6
     )
     end_time=Sys.time()
