@@ -1,6 +1,7 @@
-AIS = function(samples, betas, fa, fb, transition, num_iterations_mcmc,parallel = TRUE, num_cores=1, other_params=NULL,  ...){
+AIS = function(samples, betas, fa, fb, transition, num_iterations_mcmc,parallel = TRUE, num_cores=1, added_e_power=0, other_params=NULL,  ...){
   run_fn <- function(x){
     run(x, betas = betas, fa = fa, fb = fb, transition = transition, num_iterations_mcmc=num_iterations_mcmc, 
+        added_e_power=added_e_power,
         other_params=other_params, ...)
   }
   if(parallel){
@@ -12,7 +13,7 @@ AIS = function(samples, betas, fa, fb, transition, num_iterations_mcmc,parallel 
   simplify2array(res)
 }
 
-run = function(x, betas, fa, fb, transition, other_params,  ...){
+run = function(x, betas, fa, fb, transition, added_e_power, other_params,  ...){
   K = length(betas)
   
   assert_that(all(betas <= 1))
@@ -35,16 +36,16 @@ run = function(x, betas, fa, fb, transition, other_params,  ...){
     f_bs[k] = fb(x,other_params)
     print(paste(f_as[k],f_bs[k]))
   }
-  
+ 
   # Betas in numerator goes from 1:K
   # Betas in denominator go from 0:(K-1)
   w = exp(
     sum(
       log_pstar(f_as, f_bs, betas) - log_pstar(f_as, f_bs, c(0, betas[-K]))
-    )
+    ) + added_e_power
   )
   #print("Completed run")
-  w
+  return(w)
 }
 
 
@@ -70,10 +71,13 @@ run = function(x, betas, fa, fb, transition, other_params,  ...){
 #' @examples
 AISC <- function(samples, betas, fa, fb, transition, num_iterations_mcmc, 
                  proposal_sample_fn, proposal_cond_density_fn, 
+                 added_e_power,
                  other_params=NULL, 
                 parallel = TRUE, num_cores=1, ...){
   run_fn <- function(x){
-    runC(x, betas = betas, fa = fa, fb = fb, transition = transition,num_iterations_mcmc=num_iterations_mcmc,
+    runC(x, betas = betas, fa = fa, fb = fb, transition = transition,
+         added_e_power=added_e_power,
+         num_iterations_mcmc=num_iterations_mcmc,
          proposal_sample_fn=proposal_sample_fn,
          proposal_cond_density_fn= proposal_cond_density_fn,
          other_params=other_params, ...)
@@ -102,7 +106,9 @@ AISC <- function(samples, betas, fa, fb, transition, num_iterations_mcmc,
   # )
 }
 
-runC = function(x, betas, fa, fb, transition, num_iterations_mcmc, 
+runC = function(x, betas, fa, fb, transition, 
+                added_e_power,
+                num_iterations_mcmc, 
                 proposal_sample_fn, proposal_cond_density_fn,
                 other_params, ...){
   K = length(betas)
@@ -135,8 +141,9 @@ runC = function(x, betas, fa, fb, transition, num_iterations_mcmc,
   w = exp(
     sum(
       log_pstar(f_as, f_bs, betas) - log_pstar(f_as, f_bs, c(0, betas[-K]))
-    )
+    ) +
+      added_e_power
   )
   #print("Completed run")
-  w
+  return(w)
 }
