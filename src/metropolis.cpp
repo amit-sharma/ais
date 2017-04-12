@@ -17,6 +17,7 @@ using namespace Rcpp;
 //IntegerVector powers_dirichlet= IntegerVector::create(1, 2, 4, 5, 6, 1, 5, 8);
 //typedef NumericVector (*funcPtr)(NumericVector x , int j, double mult);
 
+//Do not use this function. superseded by the C2 or Cbeta function below.
 // [[Rcpp::export]]
 NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc, 
                           List other_params) {
@@ -25,9 +26,12 @@ NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc,
   double log_old_p, log_new_p;
   double new_fa, log_diff;
   NumericVector rand_num;
+  int successes=0;
+  NumericVector covariances = NumericVector::create(0.05,0.15,0.4, 0.7);
   for(int i =1; i<=num_iterations_mcmc; i++){
-    for(int j=1; j<=9; j=j*3){
-        proposal = x + rnorm(n, 0, 0.05*j);
+    //for(int j=1; j<=9; j=j*3){
+    for(int j=0; j<covariances.size();j++){
+        proposal = x + rnorm(n, 0, covariances[j]);//0.05*j);
         new_fa = faC(proposal);
         if(new_fa != -INFINITY){
           //std::cout<<x<<"ggf"<<proposal<<std::endl;
@@ -38,6 +42,7 @@ NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc,
           log_diff = log_new_p - log_old_p;
           //std::cout<<log_new_p-log_old_p<<" "<<log_new_p<<log_old_p<<std::endl;
           if(log_new_p != -INFINITY){
+            successes += 1;
             if(exp(log_diff) > runif(1)[0]){
               for(int index=0; index<n; index++){
                 x[index] = proposal[index];
@@ -48,11 +53,13 @@ NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc,
         
     }
   }
+  //std::cout<<"Acceptance Ratio"<<successes/(num_iterations_mcmc*covariances.size());
   return x;
 }
 
 // [[Rcpp::export]]
 NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc,
+                           SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp,
                            List other_params) {
   int n = x.size();
   NumericVector proposal(n);
@@ -60,13 +67,17 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
   double new_fa;
   bool do_compute_old_p=true;
   int num_potential_changes=0;
+  int num_actual_changes=0;
+  int num_proposals_indomain = 0;
+  NumericVector covariances = NumericVector::create(0.1,0.05,0.1, 0.5);
   for(int i =1; i<=num_iterations_mcmc; i++){
-    for(int j=1; j<=9; j=j*3){
-      proposal = x + rnorm(n, 0, 0.05*j);
+    for(int j=0; j<covariances.size(); j++){
+      proposal = x + rnorm(n, 0, covariances[j]);//0.05*j);
       //std::cout<<x<<"ggf"<<proposal<<std::endl;
       //std::cout<<pow(exp(faC(x)),(1-beta));
       new_fa = faC(proposal);
       if(new_fa != -INFINITY){
+        num_proposals_indomain += 1;
         if(do_compute_old_p){
           log_old_p = faC(x)*(1-beta) + fbC(x, other_params)*beta;
           do_compute_old_p = false;
@@ -78,6 +89,7 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
         if(log_new_p != -INFINITY){
           num_potential_changes++;
           if(exp(log_diff) > runif(1)[0]){
+            num_actual_changes++;
             for(int index=0; index<n; index++){
               x[index] = proposal[index];
             }
@@ -89,7 +101,7 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
       
     }
   }
-  //std::cout<<num_potential_changes<<" Number of potential changes"<<std::endl;
+  //std::cout<<num_proposals_indomain<<" "<<num_potential_changes<<" Number of potential changes "<<1.0*num_potential_changes/(num_iterations_mcmc*covariances.size())<<" "<<1.0*num_proposals_indomain/(num_iterations_mcmc*covariances.size())<<" "<<1.0*num_actual_changes/(num_iterations_mcmc*covariances.size())<<" "<<1.0*num_actual_changes/num_potential_changes<<std::endl;
   return x;
 }
 

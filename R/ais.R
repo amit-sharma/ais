@@ -36,7 +36,7 @@ run = function(x, betas, fa, fb, transition, added_e_power, other_params,  ...){
     f_bs[k] = fb(x,other_params)
     print(paste(f_as[k],f_bs[k]))
   }
- 
+  
   # Betas in numerator goes from 1:K
   # Betas in denominator go from 0:(K-1)
   w = exp(
@@ -124,11 +124,16 @@ runC = function(x, betas, fa, fb, transition,
   f_as = numeric(K)
   f_bs = numeric(K)
   
+  num_changes = 0
+  print(paste("initial x", x))
   for(k in 1:K){
     # Sample at new temperature
     #x = transition(x, fa, fb, betas[k], ...)
+    # This function changes x in place as well
     x = transition(x, betas[k], num_iterations_mcmc, 
                    proposal_sample_fn, proposal_cond_density_fn, other_params, ...)
+    
+    #if(){ num_changes = num_changes+ 1}
     
     # save negative energies under both distributions
     f_as[k] = fa(x)
@@ -136,6 +141,7 @@ runC = function(x, betas, fa, fb, transition,
     #print(paste(f_as[k],f_bs[k]))
   }
   
+  print(paste("Acceptance ratio", num_changes, num_changes/K) )
   # Betas in numerator goes from 1:K
   # Betas in denominator go from 0:(K-1)
   w = exp(

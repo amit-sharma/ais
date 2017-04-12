@@ -5,8 +5,8 @@ metropolisC <- function(x, beta, num_iterations_mcmc, other_params) {
     .Call('ais_metropolisC', PACKAGE = 'ais', x, beta, num_iterations_mcmc, other_params)
 }
 
-metropolisC2 <- function(x, beta, num_iterations_mcmc, other_params) {
-    .Call('ais_metropolisC2', PACKAGE = 'ais', x, beta, num_iterations_mcmc, other_params)
+metropolisC2 <- function(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params) {
+    .Call('ais_metropolisC2', PACKAGE = 'ais', x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params)
 }
 
 metropolisCbeta <- function(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params) {
@@ -29,10 +29,31 @@ log_likelihoodC <- function(theta, powers_dirichlet, theta_sum_list) {
     .Call('ais_log_likelihoodC', PACKAGE = 'ais', theta, powers_dirichlet, theta_sum_list)
 }
 
+#' @title
+#' e_to_pC
+#' @descriptinocp
+#' Convert e to p representation.
+#' 
+#' @param e a vector
+#' 
+#' @details
+#' \code{e_to_pC} takes a vector.
+#' @export
 e_to_pC <- function(e) {
     .Call('ais_e_to_pC', PACKAGE = 'ais', e)
 }
 
+#' @title
+#' fbC
+#' @descriptinocp
+#' 
+#' 
+#' @param e a vector containing values of the parameters.
+#' @param other_params a list containing other parameters
+#' 
+#' @details
+#' \code{e_to_pC} takes a vector.
+#' @export
 fbC <- function(e, other_params) {
     .Call('ais_fbC', PACKAGE = 'ais', e, other_params)
 }

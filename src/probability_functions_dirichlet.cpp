@@ -89,6 +89,16 @@ double log_likelihoodC(NumericVector theta, IntegerVector powers_dirichlet, Rcpp
   return log_like;
 }
 
+//' @title
+//' e_to_pC
+//' @descriptinocp
+//' Convert e to p representation.
+//' 
+//' @param e a vector
+//' 
+//' @details
+//' \code{e_to_pC} takes a vector.
+//' @export
 // [[Rcpp::export]]
 NumericVector e_to_pC(NumericVector e){
   int len_vec = e.size()+1;
@@ -103,6 +113,18 @@ NumericVector e_to_pC(NumericVector e){
   return p;
 }
 
+
+//' @title
+//' fbC
+//' @descriptinocp
+//' 
+//' 
+//' @param e a vector containing values of the parameters.
+//' @param other_params a list containing other parameters
+//' 
+//' @details
+//' \code{e_to_pC} takes a vector.
+//' @export
 // [[Rcpp::export]]
 double fbC(NumericVector e, List other_params){
   //Already checked in faC
