@@ -27,7 +27,8 @@ num_powers = 32
 Main <- function(DISTR){
   
   # Inverse temperatures
-  betas = cooling2(K, exponent = -8) # seq(1, K)/K #
+  betas = cooling2(K, exponent = -8) # 
+  #betas= seq(1, K)/K 
   
   if(DISTR=='dirichlet'){
     powers_dirichlet = round(runif(num_powers)*5)
@@ -78,8 +79,10 @@ Main <- function(DISTR){
   # List of samples from the "easy" distribution
   # This is in the e domain (e_to_p converts it to probability domain)
   # so do not need to worry about summing to 1.
-  samples = replicate(replicates, runif(n), simplify = FALSE)
-  
+  #samples = replicate(replicates, runif(n), simplify = FALSE)
+  orig_samples = replicate(replicates, runif(n+1), simplify = FALSE)
+  p_samples=lapply(orig_samples, function(elem_arr){ elem_arr/sum(elem_arr)})
+  samples = lapply(p_samples, function(elem_arr) {p_to_e(elem_arr)[-1]})
   
   
   names(powers_dirichlet) = names(theta_sum_vec)
@@ -119,7 +122,7 @@ Main <- function(DISTR){
       betas = betas, 
       fa=faC,
       fb = fbC, 
-      transition = metropolisC2, 
+      transition = metropolisCbeta, 
       num_iterations_mcmc=40,
       proposal_sample_fn = rproposal,
       proposal_cond_density_fn = dproposal_cond, 

@@ -125,7 +125,9 @@ runC = function(x, betas, fa, fb, transition,
   f_bs = numeric(K)
   
   # plot data matrix
-  x_plot_matrix = matrix(ncol=length(x)+1, nrow=50000)
+  max_rows_plotmatrix=50000
+  x_plot_matrix = matrix(ncol=length(x), nrow=max_rows_plotmatrix)
+  #x_plot_matrix = matrix(ncol=length(x)+1, nrow=50000)
   plot_matrix_i = 1
   
   num_changes = 0
@@ -135,8 +137,7 @@ runC = function(x, betas, fa, fb, transition,
   sum_num_proposals_indomain=0
   sum_num_potential_changes=0
   for(k in 1:K){
-    x_plot_matrix[plot_matrix_i,]=e_to_pC(x)
-    plot_matrix_i = plot_matrix_i+1
+
     
     # Sample at new temperature
     #x = transition(x, fa, fb, betas[k], ...)
@@ -156,7 +157,15 @@ runC = function(x, betas, fa, fb, transition,
     f_as[k] = fa(x)
     f_bs[k] = fb(x,other_params)
     #print(paste(f_as[k],f_bs[k]))a
-    
+
+    if(plot_matrix_i+ret_list[["num_proposals"]]-1 > max_rows_plotmatrix){
+      plot_matrix_fn(x_plot_matrix) 
+      plot_matrix_i=1
+      x_plot_matrix= x_plot_matrix*NA
+    } 
+    #x_plot_matrix[plot_matrix_i,]=e_to_pC(x)
+    x_plot_matrix[plot_matrix_i:(plot_matrix_i+ret_list[["num_proposals"]]-1),]=ret_list[["all_x_mat"]]
+    plot_matrix_i = plot_matrix_i+ret_list[["num_proposals"]]
   }
   plot_matrix_fn(x_plot_matrix) 
   print(paste("Acceptance ratio", sum_num_actual_changes/sum_num_proposals, sum_num_potential_changes/sum_num_proposals, sum_num_proposals_indomain/sum_num_proposals, sum_num_proposals ))
@@ -177,6 +186,7 @@ plot_matrix_fn <- function(mat){
   df = as.data.frame(mat)
   df = df %>% mutate(iter=row_number()) %>% filter(!is.na(V1))
   df2 = gather(df, param_name, param_value, starts_with("V"))
+  df2 = mutate(df2, param_name = ifelse(str_count(param_name)==2, str_c("V" ,"0", str_sub(param_name,2,2)), param_name))
   p1=ggplot(df2, aes(x=iter, y=param_value)) + geom_line() + facet_wrap(~param_name)
   print(p1)
   p2 = ggplot(df2, aes(x=param_value)) + geom_density()+facet_wrap(~param_name)

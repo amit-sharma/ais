@@ -151,6 +151,9 @@ List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
   double log_old_p, log_new_p, log_diff;
   double log_old_g, log_new_g;
   double new_fa;
+  int lower_mult=10;
+  int upper_mult=10000;
+  NumericMatrix all_x_vals(num_iterations_mcmc*4, n); //TODO 4 is hardcoded. change.
   
   bool do_compute_old_p=true;
   int num_potential_changes=0;
@@ -159,7 +162,7 @@ List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
   int num_proposals = 0;
   //NumericVector covariances = NumericVector::create(0.01,0.05,0.1, 0.3);
   for(int i =1; i<=num_iterations_mcmc; i++){
-    for(int j=1000; j<=10000; j=j*10){ // default: 10^3,10^5
+    for(int j=lower_mult; j<=upper_mult; j=j*10){ // default: 10^3,10^5
       num_proposals++;
         /*NumericVector params1 = j*x;
         NumericVector params2 =j*(1-x);
@@ -202,7 +205,7 @@ List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
           std::cout<<log_new_p<<new_fa<<" "<<fbC(proposal, other_params)<<log_old_p<<"  gf  "<<proposal<<std::endl;
         }*/
       }
-      
+      all_x_vals(num_proposals-1,_) = x;
     }
   }
   //std::cout<<num_potential_changes<<" Number of potential changes"<<std::endl;
@@ -211,7 +214,8 @@ List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
     _["num_proposals"]=num_proposals,
     _["num_proposals_indomain"]=num_proposals_indomain,
     _["num_potential_changes"]=num_potential_changes,
-    _["num_actual_changes"]=num_actual_changes
+    _["num_actual_changes"]=num_actual_changes,
+    _["all_x_mat"] = all_x_vals
   );
 }
 
