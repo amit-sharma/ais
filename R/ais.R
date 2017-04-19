@@ -124,24 +124,42 @@ runC = function(x, betas, fa, fb, transition,
   f_as = numeric(K)
   f_bs = numeric(K)
   
+  # plot data matrix
+  x_plot_matrix = matrix(ncol=length(x)+1, nrow=50000)
+  plot_matrix_i = 1
+  
   num_changes = 0
-  print(paste("initial x", x))
+  #print(paste("initial x", x))
+  sum_num_actual_changes = 0
+  sum_num_proposals = 0
+  sum_num_proposals_indomain=0
+  sum_num_potential_changes=0
   for(k in 1:K){
+    x_plot_matrix[plot_matrix_i,]=e_to_pC(x)
+    plot_matrix_i = plot_matrix_i+1
+    
     # Sample at new temperature
     #x = transition(x, fa, fb, betas[k], ...)
     # This function changes x in place as well
-    x = transition(x, betas[k], num_iterations_mcmc, 
+    ret_list = transition(x, betas[k], num_iterations_mcmc, 
                    proposal_sample_fn, proposal_cond_density_fn, other_params, ...)
+    x = ret_list[["x_vec"]]
+    sum_num_actual_changes = sum_num_actual_changes+ret_list[["num_actual_changes"]]
+    sum_num_potential_changes = sum_num_potential_changes+ret_list[["num_potential_changes"]]
+    sum_num_proposals = sum_num_proposals+ret_list[["num_proposals"]]
+    sum_num_proposals_indomain = sum_num_proposals_indomain+ret_list[["num_proposals_indomain"]]
+    
     
     #if(){ num_changes = num_changes+ 1}
     
     # save negative energies under both distributions
     f_as[k] = fa(x)
     f_bs[k] = fb(x,other_params)
-    #print(paste(f_as[k],f_bs[k]))
+    #print(paste(f_as[k],f_bs[k]))a
+    
   }
-  
-  print(paste("Acceptance ratio", num_changes, num_changes/K) )
+  plot_matrix_fn(x_plot_matrix) 
+  print(paste("Acceptance ratio", sum_num_actual_changes/sum_num_proposals, sum_num_potential_changes/sum_num_proposals, sum_num_proposals_indomain/sum_num_proposals, sum_num_proposals ))
   # Betas in numerator goes from 1:K
   # Betas in denominator go from 0:(K-1)
   w = exp(
@@ -152,4 +170,20 @@ runC = function(x, betas, fa, fb, transition,
   )
   #print("Completed run")
   return(w)
+}
+
+
+plot_matrix_fn <- function(mat){
+  df = as.data.frame(mat)
+  df = df %>% mutate(iter=row_number()) %>% filter(!is.na(V1))
+  df2 = gather(df, param_name, param_value, starts_with("V"))
+  p1=ggplot(df2, aes(x=iter, y=param_value)) + geom_line() + facet_wrap(~param_name)
+  print(p1)
+  p2 = ggplot(df2, aes(x=param_value)) + geom_density()+facet_wrap(~param_name)
+  print(p2)
+  df3 = group_by(df2, param_name) %>% mutate(running_mean = cumsum(param_value)/iter) %>%
+    ungroup()
+  p3 = ggplot(df3, aes(x=iter, y=running_mean)) + geom_line() + facet_wrap(~param_name)
+  print(p3)
+  
 }

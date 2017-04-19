@@ -58,7 +58,7 @@ NumericVector metropolisC(NumericVector x, double beta, int num_iterations_mcmc,
 }
 
 // [[Rcpp::export]]
-NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc,
+List metropolisC2(NumericVector x, double beta, int num_iterations_mcmc,
                            SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp,
                            List other_params) {
   int n = x.size();
@@ -69,10 +69,12 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
   int num_potential_changes=0;
   int num_actual_changes=0;
   int num_proposals_indomain = 0;
-  NumericVector covariances = NumericVector::create(0.1,0.05,0.1, 0.5);
+  int num_proposals = 0;
+  NumericVector covariances = NumericVector::create(0.01,0.05,0.1, 0.3);
   for(int i =1; i<=num_iterations_mcmc; i++){
     for(int j=0; j<covariances.size(); j++){
       proposal = x + rnorm(n, 0, covariances[j]);//0.05*j);
+      num_proposals++;
       //std::cout<<x<<"ggf"<<proposal<<std::endl;
       //std::cout<<pow(exp(faC(x)),(1-beta));
       new_fa = faC(proposal);
@@ -102,7 +104,13 @@ NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc
     }
   }
   //std::cout<<num_proposals_indomain<<" "<<num_potential_changes<<" Number of potential changes "<<1.0*num_potential_changes/(num_iterations_mcmc*covariances.size())<<" "<<1.0*num_proposals_indomain/(num_iterations_mcmc*covariances.size())<<" "<<1.0*num_actual_changes/(num_iterations_mcmc*covariances.size())<<" "<<1.0*num_actual_changes/num_potential_changes<<std::endl;
-  return x;
+  return List::create(
+    _["x_vec"]=x,
+    _["num_proposals"]=num_proposals,
+    _["num_proposals_indomain"]=num_proposals_indomain,
+    _["num_potential_changes"]=num_potential_changes,
+    _["num_actual_changes"]=num_actual_changes
+  );
 }
 
 
@@ -128,7 +136,7 @@ NumericVector callViaXPtr(const NumericVector x, SEXP xpsexp, int n, double mult
 }
 */
 // [[Rcpp::export]]
-NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
+List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
                               SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp,
                            List other_params) {
   XPtr<rDistrFnPtr> xpfun_r(rproposal_fn_xpsexp);
@@ -146,8 +154,13 @@ NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_m
   
   bool do_compute_old_p=true;
   int num_potential_changes=0;
+  int num_actual_changes=0;
+  int num_proposals_indomain = 0;
+  int num_proposals = 0;
+  //NumericVector covariances = NumericVector::create(0.01,0.05,0.1, 0.3);
   for(int i =1; i<=num_iterations_mcmc; i++){
     for(int j=1000; j<=10000; j=j*10){ // default: 10^3,10^5
+      num_proposals++;
         /*NumericVector params1 = j*x;
         NumericVector params2 =j*(1-x);
         for(int index=0;index<n;index++){
@@ -165,6 +178,7 @@ NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_m
       //std::cout<<pow(exp(faC(x)),(1-beta));
       new_fa = faC(proposal);
       if(new_fa != -INFINITY){
+        num_proposals_indomain ++;
         if(do_compute_old_p){
           log_old_p = faC(x)*(1-beta) + fbC(x, other_params)*beta;
           do_compute_old_p = false;
@@ -181,6 +195,7 @@ NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_m
               x[index] = proposal[index];
             }
             do_compute_old_p=true;
+            num_actual_changes++;
             
           }
         } /*else {
@@ -191,7 +206,13 @@ NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_m
     }
   }
   //std::cout<<num_potential_changes<<" Number of potential changes"<<std::endl;
-  return x;
+  return List::create(
+    _["x_vec"]=x,
+    _["num_proposals"]=num_proposals,
+    _["num_proposals_indomain"]=num_proposals_indomain,
+    _["num_potential_changes"]=num_potential_changes,
+    _["num_actual_changes"]=num_actual_changes
+  );
 }
 
 

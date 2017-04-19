@@ -22,7 +22,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // metropolisC2
-NumericVector metropolisC2(NumericVector x, double beta, int num_iterations_mcmc, SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp, List other_params);
+List metropolisC2(NumericVector x, double beta, int num_iterations_mcmc, SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp, List other_params);
 RcppExport SEXP ais_metropolisC2(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP rproposal_fn_xpsexpSEXP, SEXP dproposal_fn_xpsexpSEXP, SEXP other_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -38,7 +38,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // metropolisCbeta
-NumericVector metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc, SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp, List other_params);
+List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc, SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp, List other_params);
 RcppExport SEXP ais_metropolisCbeta(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP rproposal_fn_xpsexpSEXP, SEXP dproposal_fn_xpsexpSEXP, SEXP other_paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

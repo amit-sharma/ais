@@ -16,12 +16,12 @@ set.seed(1)       # Seed the random number generator for reproducibility
 #DISTR="hyperdirichlet"
 USE_CPP=TRUE
 CUSTOM_PROPOSAL=FALSE
-DO_PARALLEL=T
+DO_PARALLEL=F
 
 #dirichlet converges to exact at 10k and 200
-K = 100000     # Number of annealed transitions per run, default 10000
-replicates = 200  # Number of AIS runs, default 200
-num_powers = 28
+K = 5000    # Number of annealed transitions per run, default 10000
+replicates = 5  # Number of AIS runs, default 200
+num_powers = 32
 
 #TODO: check how approximation worsens off as degree increases.
 Main <- function(DISTR){
@@ -120,7 +120,7 @@ Main <- function(DISTR){
       fa=faC,
       fb = fbC, 
       transition = metropolisC2, 
-      num_iterations_mcmc=10,
+      num_iterations_mcmc=40,
       proposal_sample_fn = rproposal,
       proposal_cond_density_fn = dproposal_cond, 
       added_e_power=0,
@@ -131,13 +131,14 @@ Main <- function(DISTR){
     end_time=Sys.time()
     print(end_time-start_time)
     
-    true_val = generalized_dirichlet_integral(powers_dirichlet, n+1, a,b, uselogscale=TRUE, added_constant=0, do_print=TRUE)
+    #true_val = generalized_dirichlet_integral(powers_dirichlet, n+1, a,b, uselogscale=TRUE, added_constant=0, do_print=TRUE)
     true_val_byformula= dirichlet_integral_formula(DISTR, powers_dirichlet, theta_sum_vec) 
+    val_by_ais = mean(ais_weightsC)
     print(paste("True exact value", true_val_byformula))
-    print(paste("Integration (Mean of AIS weights)", mean(ais_weightsC), mean(ais_weightsC, na.rm=TRUE), log(mean(ais_weightsC))))  # Should be close to 1
+    print(paste("Integration (Mean of AIS weights)", val_by_ais, mean(ais_weightsC, na.rm=TRUE), log(mean(ais_weightsC))))  # Should be close to 1
     print(paste("Std Error of the mean", sd(ais_weightsC) / sqrt(length(ais_weightsC)), sd(ais_weightsC, na.rm=TRUE) / sqrt(length(ais_weightsC)) )) # Estimated standard error (hopefully reliable)
     ## Adjusted sample size
-    print(paste("Actual, Adjusted sample size", length(ais_weightsC), length(ais_weightsC)/(1+var(ais_weightsC))))
+    print(paste("Actual, Adjusted sample size", length(ais_weightsC), length(ais_weightsC)/(1+var(ais_weightsC/val_by_ais))))
     print(paste("Percent error", mean(ais_weightsC)/true_val_byformula*100 - 100))
   } 
   
