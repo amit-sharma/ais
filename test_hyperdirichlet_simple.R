@@ -13,35 +13,46 @@ library(SimplicialCubature)
 
 
 set.seed(1)       # Seed the random number generator for reproducibility
-DISTR="hyperdirichlet"
+#DISTR="hyperdirichlet"
 USE_CPP=TRUE
 CUSTOM_PROPOSAL=FALSE
 DO_PARALLEL=T
 
 #dirichlet converges to exact at 10k and 200
-K = 10000     # Number of annealed transitions per run, default 10000
+K = 100000     # Number of annealed transitions per run, default 10000
 replicates = 200  # Number of AIS runs, default 200
-
+num_powers = 28
 
 #TODO: check how approximation worsens off as degree increases.
-Main <- function(){
+Main <- function(DISTR){
   
   # Inverse temperatures
   betas = cooling2(K, exponent = -8) # seq(1, K)/K #
   
   if(DISTR=='dirichlet'){
-    powers_dirichlet = c(1,rep(0,7))
+    powers_dirichlet = round(runif(num_powers)*5)
     n=length(powers_dirichlet)-1 #            # Number of dimensions of distribution (1 less than 10)
-    theta_sum_vec = list(
-      "000"=c(0),
-      "001"= c(1),
-      "010"= c(2),
-      "011"= c(3),
-      "100"= c(4),
-      "101"= c(5),
-      "110"= c(6),
-      "111"= c(7)
-    )
+    # theta_sum_vec_all = list(
+    #   "000"=c(0),
+    #   "001"= c(1),
+    #   "010"= c(2),
+    #   "011"= c(3),
+    #   "100"= c(4),
+    #   "101"= c(5),
+    #   "110"= c(6),
+    #   "111"= c(7),
+    #   "1000"=c(8),
+    #   "1001"=c(9),
+    #   "1010"=c(10),
+    #   "1011"=c(11),
+    #   "1100"=c(12),
+    #   "1101"=c(13),
+    #   "1110"=c(14),
+    #   "1111"=c(15)
+    # )
+    # theta_sum_vec=theta_sum_vec_all[1:num_powers]
+    theta_sum_vec = lapply(seq(0,n), function(x) c(x))
+    names(theta_sum_vec)=seq(0,n)
     a=1
     b=1
   } else if (DISTR=="hyperdirichlet"){
@@ -121,10 +132,13 @@ Main <- function(){
     print(end_time-start_time)
     
     true_val = generalized_dirichlet_integral(powers_dirichlet, n+1, a,b, uselogscale=TRUE, added_constant=0, do_print=TRUE)
-    print(paste("Integration (Mean of AIS weights)", mean(ais_weightsC), mean(ais_weightsC, na.rm=TRUE)))  # Should be close to 1
+    true_val_byformula= dirichlet_integral_formula(DISTR, powers_dirichlet, theta_sum_vec) 
+    print(paste("True exact value", true_val_byformula))
+    print(paste("Integration (Mean of AIS weights)", mean(ais_weightsC), mean(ais_weightsC, na.rm=TRUE), log(mean(ais_weightsC))))  # Should be close to 1
     print(paste("Std Error of the mean", sd(ais_weightsC) / sqrt(length(ais_weightsC)), sd(ais_weightsC, na.rm=TRUE) / sqrt(length(ais_weightsC)) )) # Estimated standard error (hopefully reliable)
     ## Adjusted sample size
     print(paste("Actual, Adjusted sample size", length(ais_weightsC), length(ais_weightsC)/(1+var(ais_weightsC))))
+    print(paste("Percent error", mean(ais_weightsC)/true_val_byformula*100 - 100))
   } 
   
   
@@ -138,13 +152,21 @@ Main <- function(){
   #is_weights = exp(rowSums(dt(s, df = df, log = TRUE) - dt(s, df = dfa, log = TRUE)))
   
   #For comparison, we also look at integral method. 
-  calc_hyperdirichlet_integral(x=NA, N_vec=powers_dirichlet, theta_vec=theta_sum_vec, all_theta_colindex=seq(0, n),  maxEval=50000, added_constant=0, do_cuhre=FALSE, do_simplex=TRUE)
+  all_theta_colindex=seq(0,n);names(all_theta_colindex)=seq(0,n)
+  calc_hyperdirichlet_integral(x=NA, N_vec=powers_dirichlet, theta_vec=theta_sum_vec, all_theta_colindex=all_theta_colindex,  maxEval=50000, added_constant=0, do_cuhre=FALSE, do_simplex=TRUE)
   
   # Results -----------------------------------------------------------------
   return(ais_weightsC)
   
 } 
 
+
+dirichlet_integral_formula <- function(DISTR, powers_dirichlet, theta_sum_vec){
+  if(DISTR=="dirichlet"){
+    log_ans = sum(lgamma(powers_dirichlet+1)) - lgamma(length(powers_dirichlet)+sum(powers_dirichlet))
+  }
+  return(exp(log_ans))
+}
 
 calc_hyperdirichlet_integral <- function(x, N_vec, theta_vec, all_theta_colindex,  maxEval=0, added_constant=0, do_cuhre=NULL, do_simplex=TRUE){
   #n <- dim(x)-1  # "r-1" because this is the dimension of the integrand, not the number of p's.
