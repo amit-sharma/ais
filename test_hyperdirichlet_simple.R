@@ -62,7 +62,7 @@ Main <- function(DISTR, NUM_CORES=6){
     a=1
     b=1
   } else if (DISTR=="hyperdirichlet"){
-    powers_dirichlet = round(runif(num_powers)*5)
+    powers_dirichlet = round(runif(num_powers)*50)
     n=length(powers_dirichlet)*4 -1
     theta_sum_vec = list(
       "000"=c(0,1,2,3),
@@ -90,7 +90,8 @@ Main <- function(DISTR, NUM_CORES=6){
   p_samples=lapply(orig_samples, function(elem_arr){ elem_arr/sum(elem_arr)})
   samples = lapply(p_samples, function(elem_arr) {p_to_e(elem_arr)[-1]})
   
-  
+ 
+  added_constant= sum(powers_dirichlet) 
   names(powers_dirichlet) = names(theta_sum_vec)
   if(!USE_CPP){
     # Collect importance weights using annealed importance sampling
@@ -132,7 +133,7 @@ Main <- function(DISTR, NUM_CORES=6){
       num_iterations_mcmc=20, # was 40.
       proposal_sample_fn = rproposal,
       proposal_cond_density_fn = dproposal_cond, 
-      added_e_power=0,
+      added_e_power=added_constant,
       other_params=list(powers=powers_dirichlet, param_structure=theta_sum_vec),
       parallel=DO_PARALLEL,
       num_cores=NUM_CORES,
@@ -142,7 +143,8 @@ Main <- function(DISTR, NUM_CORES=6){
     print(end_time-start_time)
     
     #true_val = generalized_dirichlet_integral(powers_dirichlet, n+1, a,b, uselogscale=TRUE, added_constant=0, do_print=TRUE)
-    true_val_byformula= dirichlet_integral_formula(DISTR, powers_dirichlet, theta_sum_vec) 
+    print(paste("ADDED CONSTANT", added_constant))
+    true_val_byformula= dirichlet_integral_formula(DISTR, powers_dirichlet, theta_sum_vec, added_constant=added_constant) 
     val_by_ais = mean(ais_weightsC)
     print(paste("True exact value", true_val_byformula))
     print(paste("Integration (Mean of AIS weights)", val_by_ais, mean(ais_weightsC, na.rm=TRUE), log(mean(ais_weightsC))))  # Should be close to 1
@@ -164,7 +166,7 @@ Main <- function(DISTR, NUM_CORES=6){
   
   #For comparison, we also look at integral method. 
   all_theta_colindex=seq(0,n);names(all_theta_colindex)=seq(0,n)
-  calc_hyperdirichlet_integral(x=NA, N_vec=powers_dirichlet, theta_vec=theta_sum_vec, all_theta_colindex=all_theta_colindex,  maxEval=50000, added_constant=0, do_cuhre=FALSE, do_simplex=TRUE)
+  calc_hyperdirichlet_integral(x=NA, N_vec=powers_dirichlet, theta_vec=theta_sum_vec, all_theta_colindex=all_theta_colindex,  maxEval=50000, added_constant=added_constant, do_cuhre=FALSE, do_simplex=TRUE)
   
   # Results -----------------------------------------------------------------
   return(ais_weightsC)
@@ -172,11 +174,11 @@ Main <- function(DISTR, NUM_CORES=6){
 } 
 
 
-dirichlet_integral_formula <- function(DISTR, powers_dirichlet, theta_sum_vec){
+dirichlet_integral_formula <- function(DISTR, powers_dirichlet, theta_sum_vec, added_constant){
   if(DISTR=="dirichlet"){
-    log_ans = sum(lgamma(powers_dirichlet+1)) - lgamma(length(powers_dirichlet)+sum(powers_dirichlet))
+    log_ans = sum(lgamma(powers_dirichlet+1)) - lgamma(length(powers_dirichlet)+sum(powers_dirichlet)) + added_constant
   } else if (DISTR=="hyperdirichlet"){
-    log_ans = sum(lgamma(powers_dirichlet+4) - lgamma(4)) - lgamma(4*length(powers_dirichlet)+sum(powers_dirichlet))
+    log_ans = sum(lgamma(powers_dirichlet+4) - lgamma(4)) - lgamma(4*length(powers_dirichlet)+sum(powers_dirichlet)) + added_constant
   }
   return(exp(log_ans))
 }
