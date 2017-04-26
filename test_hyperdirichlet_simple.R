@@ -24,12 +24,12 @@ DO_PARALLEL=T
 DEBUG=F
 
 #dirichlet converges to exact at 10k and 200
-K = 10000   # Number of annealed transitions per run, default 10000
+K = 20000   # Number of annealed transitions per run, default 10000
 replicates = 200  # Number of AIS runs, default 200
-num_powers = 32
+num_powers=8 # 32 for dirichlet
 
 #TODO: check how approximation worsens off as degree increases.
-Main <- function(DISTR){
+Main <- function(DISTR, NUM_CORES=6){
   
   # Inverse temperatures
   betas = cooling2(K, exponent = -8) # 
@@ -62,6 +62,7 @@ Main <- function(DISTR){
     a=1
     b=1
   } else if (DISTR=="hyperdirichlet"){
+    powers_dirichlet = round(runif(num_powers)*5)
     n=length(powers_dirichlet)*4 -1
     theta_sum_vec = list(
       "000"=c(0,1,2,3),
@@ -134,7 +135,7 @@ Main <- function(DISTR){
       added_e_power=0,
       other_params=list(powers=powers_dirichlet, param_structure=theta_sum_vec),
       parallel=DO_PARALLEL,
-      num_cores=6,
+      num_cores=NUM_CORES,
       debug=DEBUG
     )
     end_time=Sys.time()
@@ -174,6 +175,8 @@ Main <- function(DISTR){
 dirichlet_integral_formula <- function(DISTR, powers_dirichlet, theta_sum_vec){
   if(DISTR=="dirichlet"){
     log_ans = sum(lgamma(powers_dirichlet+1)) - lgamma(length(powers_dirichlet)+sum(powers_dirichlet))
+  } else if (DISTR=="hyperdirichlet"){
+    log_ans = sum(lgamma(powers_dirichlet+4) - lgamma(4)) - lgamma(4*length(powers_dirichlet)+sum(powers_dirichlet))
   }
   return(exp(log_ans))
 }
