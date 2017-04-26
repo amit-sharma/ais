@@ -138,7 +138,7 @@ NumericVector callViaXPtr(const NumericVector x, SEXP xpsexp, int n, double mult
 // [[Rcpp::export]]
 List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
                               SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp,
-                           List other_params) {
+                           List other_params, int debug) {
   XPtr<rDistrFnPtr> xpfun_r(rproposal_fn_xpsexp);
   rDistrFnPtr rproposal_distr = *xpfun_r;
   
@@ -151,16 +151,22 @@ List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
   double log_old_p, log_new_p, log_diff;
   double log_old_g, log_new_g;
   double new_fa;
-  int lower_mult=10;
-  int upper_mult=10000;
-  NumericMatrix all_x_vals(num_iterations_mcmc*4, n); //TODO 4 is hardcoded. change.
-  
   bool do_compute_old_p=true;
+  int lower_mult=10;
+  int upper_mult=10000; 
+  NumericMatrix all_x_vals;
+  if(debug){
+
+    NumericMatrix all_x_vals2(num_iterations_mcmc*4, n); //TODO 4 is hardcoded. change.
+    all_x_vals= all_x_vals2;
+  }
+  
   int num_potential_changes=0;
   int num_actual_changes=0;
   int num_proposals_indomain = 0;
   int num_proposals = 0;
   //NumericVector covariances = NumericVector::create(0.01,0.05,0.1, 0.3);
+  
   for(int i =1; i<=num_iterations_mcmc; i++){
     for(int j=lower_mult; j<=upper_mult; j=j*10){ // default: 10^3,10^5
       num_proposals++;
@@ -205,7 +211,9 @@ List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc,
           std::cout<<log_new_p<<new_fa<<" "<<fbC(proposal, other_params)<<log_old_p<<"  gf  "<<proposal<<std::endl;
         }*/
       }
-      all_x_vals(num_proposals-1,_) = x;
+      if(debug){
+        all_x_vals(num_proposals-1,_) = x;
+      }
     }
   }
   //std::cout<<num_potential_changes<<" Number of potential changes"<<std::endl;

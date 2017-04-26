@@ -1,5 +1,9 @@
 # This example uses hyperdirichlet distribution.
 # first testing 10 dimensional dirichlet distribution.
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
 
 library(assertthat)
 library(parallel)
@@ -16,11 +20,12 @@ set.seed(1)       # Seed the random number generator for reproducibility
 #DISTR="hyperdirichlet"
 USE_CPP=TRUE
 CUSTOM_PROPOSAL=FALSE
-DO_PARALLEL=F
+DO_PARALLEL=T
+DEBUG=F
 
 #dirichlet converges to exact at 10k and 200
-K = 5000    # Number of annealed transitions per run, default 10000
-replicates = 5  # Number of AIS runs, default 200
+K = 10000   # Number of annealed transitions per run, default 10000
+replicates = 200  # Number of AIS runs, default 200
 num_powers = 32
 
 #TODO: check how approximation worsens off as degree increases.
@@ -123,13 +128,14 @@ Main <- function(DISTR){
       fa=faC,
       fb = fbC, 
       transition = metropolisCbeta, 
-      num_iterations_mcmc=40,
+      num_iterations_mcmc=20, # was 40.
       proposal_sample_fn = rproposal,
       proposal_cond_density_fn = dproposal_cond, 
       added_e_power=0,
       other_params=list(powers=powers_dirichlet, param_structure=theta_sum_vec),
       parallel=DO_PARALLEL,
-      num_cores=6
+      num_cores=6,
+      debug=DEBUG
     )
     end_time=Sys.time()
     print(end_time-start_time)

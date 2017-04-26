@@ -38,8 +38,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // metropolisCbeta
-List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc, SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp, List other_params);
-RcppExport SEXP ais_metropolisCbeta(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP rproposal_fn_xpsexpSEXP, SEXP dproposal_fn_xpsexpSEXP, SEXP other_paramsSEXP) {
+List metropolisCbeta(NumericVector x, double beta, int num_iterations_mcmc, SEXP rproposal_fn_xpsexp, SEXP dproposal_fn_xpsexp, List other_params, int debug);
+RcppExport SEXP ais_metropolisCbeta(SEXP xSEXP, SEXP betaSEXP, SEXP num_iterations_mcmcSEXP, SEXP rproposal_fn_xpsexpSEXP, SEXP dproposal_fn_xpsexpSEXP, SEXP other_paramsSEXP, SEXP debugSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -49,7 +49,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type rproposal_fn_xpsexp(rproposal_fn_xpsexpSEXP);
     Rcpp::traits::input_parameter< SEXP >::type dproposal_fn_xpsexp(dproposal_fn_xpsexpSEXP);
     Rcpp::traits::input_parameter< List >::type other_params(other_paramsSEXP);
-    rcpp_result_gen = Rcpp::wrap(metropolisCbeta(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params));
+    Rcpp::traits::input_parameter< int >::type debug(debugSEXP);
+    rcpp_result_gen = Rcpp::wrap(metropolisCbeta(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params, debug));
     return rcpp_result_gen;
 END_RCPP
 }

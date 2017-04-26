@@ -73,14 +73,16 @@ AISC <- function(samples, betas, fa, fb, transition, num_iterations_mcmc,
                  proposal_sample_fn, proposal_cond_density_fn, 
                  added_e_power,
                  other_params=NULL, 
-                parallel = TRUE, num_cores=1, ...){
+                parallel = TRUE, num_cores=1, debug=F, ...){
   run_fn <- function(x){
     runC(x, betas = betas, fa = fa, fb = fb, transition = transition,
          added_e_power=added_e_power,
          num_iterations_mcmc=num_iterations_mcmc,
          proposal_sample_fn=proposal_sample_fn,
          proposal_cond_density_fn= proposal_cond_density_fn,
-         other_params=other_params, ...)
+         other_params=other_params,
+         debug=debug,
+         ...)
   }
   if(parallel){
     res = mclapply(samples,run_fn, mc.cores=num_cores)
@@ -110,7 +112,8 @@ runC = function(x, betas, fa, fb, transition,
                 added_e_power,
                 num_iterations_mcmc, 
                 proposal_sample_fn, proposal_cond_density_fn,
-                other_params, ...){
+                other_params,
+                debug, ...){
   K = length(betas)
   
   assert_that(all(betas <= 1))
@@ -124,18 +127,20 @@ runC = function(x, betas, fa, fb, transition,
   f_as = numeric(K)
   f_bs = numeric(K)
   
-  # plot data matrix
-  max_rows_plotmatrix=50000
-  x_plot_matrix = matrix(ncol=length(x), nrow=max_rows_plotmatrix)
-  #x_plot_matrix = matrix(ncol=length(x)+1, nrow=50000)
-  plot_matrix_i = 1
+  if(debug){ 
+    # plot data matrix
+    max_rows_plotmatrix=50000
+    x_plot_matrix = matrix(ncol=length(x), nrow=max_rows_plotmatrix)
+    #x_plot_matrix = matrix(ncol=length(x)+1, nrow=50000)
+    plot_matrix_i = 1
+  } 
+    num_changes = 0
+    #print(paste("initial x", x))
+    sum_num_actual_changes = 0
+    sum_num_proposals = 0
+    sum_num_proposals_indomain=0
+    sum_num_potential_changes=0
   
-  num_changes = 0
-  #print(paste("initial x", x))
-  sum_num_actual_changes = 0
-  sum_num_proposals = 0
-  sum_num_proposals_indomain=0
-  sum_num_potential_changes=0
   for(k in 1:K){
 
     
@@ -143,13 +148,14 @@ runC = function(x, betas, fa, fb, transition,
     #x = transition(x, fa, fb, betas[k], ...)
     # This function changes x in place as well
     ret_list = transition(x, betas[k], num_iterations_mcmc, 
-                   proposal_sample_fn, proposal_cond_density_fn, other_params, ...)
+                   proposal_sample_fn, proposal_cond_density_fn, other_params, debug, ...)
     x = ret_list[["x_vec"]]
-    sum_num_actual_changes = sum_num_actual_changes+ret_list[["num_actual_changes"]]
-    sum_num_potential_changes = sum_num_potential_changes+ret_list[["num_potential_changes"]]
-    sum_num_proposals = sum_num_proposals+ret_list[["num_proposals"]]
-    sum_num_proposals_indomain = sum_num_proposals_indomain+ret_list[["num_proposals_indomain"]]
-    
+    if(T){
+      sum_num_actual_changes = sum_num_actual_changes+ret_list[["num_actual_changes"]]
+      sum_num_potential_changes = sum_num_potential_changes+ret_list[["num_potential_changes"]]
+      sum_num_proposals = sum_num_proposals+ret_list[["num_proposals"]]
+      sum_num_proposals_indomain = sum_num_proposals_indomain+ret_list[["num_proposals_indomain"]]
+    }
     
     #if(){ num_changes = num_changes+ 1}
     
@@ -158,16 +164,22 @@ runC = function(x, betas, fa, fb, transition,
     f_bs[k] = fb(x,other_params)
     #print(paste(f_as[k],f_bs[k]))a
 
-    if(plot_matrix_i+ret_list[["num_proposals"]]-1 > max_rows_plotmatrix){
-      plot_matrix_fn(x_plot_matrix) 
-      plot_matrix_i=1
-      x_plot_matrix= x_plot_matrix*NA
-    } 
-    #x_plot_matrix[plot_matrix_i,]=e_to_pC(x)
-    x_plot_matrix[plot_matrix_i:(plot_matrix_i+ret_list[["num_proposals"]]-1),]=ret_list[["all_x_mat"]]
-    plot_matrix_i = plot_matrix_i+ret_list[["num_proposals"]]
+    if(debug){
+      if(plot_matrix_i+ret_list[["num_proposals"]]-1 > max_rows_plotmatrix){
+        plot_matrix_fn(x_plot_matrix) 
+        plot_matrix_i=1
+        x_plot_matrix= x_plot_matrix*NA
+      } 
+      #x_plot_matrix[plot_matrix_i,]=e_to_pC(x)
+      x_plot_matrix[plot_matrix_i:(plot_matrix_i+ret_list[["num_proposals"]]-1),]=ret_list[["all_x_mat"]]
+      plot_matrix_i = plot_matrix_i+ret_list[["num_proposals"]]
+    }
+   
   }
-  plot_matrix_fn(x_plot_matrix) 
+  if(debug){
+    plot_matrix_fn(x_plot_matrix) 
+    
+  }
   print(paste("Acceptance ratio", sum_num_actual_changes/sum_num_proposals, sum_num_potential_changes/sum_num_proposals, sum_num_proposals_indomain/sum_num_proposals, sum_num_proposals ))
   # Betas in numerator goes from 1:K
   # Betas in denominator go from 0:(K-1)

@@ -9,8 +9,8 @@ metropolisC2 <- function(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dpro
     .Call('ais_metropolisC2', PACKAGE = 'ais', x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params)
 }
 
-metropolisCbeta <- function(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params) {
-    .Call('ais_metropolisCbeta', PACKAGE = 'ais', x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params)
+metropolisCbeta <- function(x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params, debug) {
+    .Call('ais_metropolisCbeta', PACKAGE = 'ais', x, beta, num_iterations_mcmc, rproposal_fn_xpsexp, dproposal_fn_xpsexp, other_params, debug)
 }
 
 faC <- function(e) {
