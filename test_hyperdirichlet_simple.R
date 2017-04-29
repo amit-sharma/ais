@@ -157,7 +157,7 @@ Main <- function(DISTR, NUM_CORES=6){
 
     
     param_vec2 = rep(0, length(theta_vec_ais))
-    names(param_vec2)=names(theta_sum_vec)
+    names(param_vec2)=names(theta_vec_ais)
     for(index_id in names(param_vec)){
       param_vec2[index_id]= param_vec[index_id]
     }
