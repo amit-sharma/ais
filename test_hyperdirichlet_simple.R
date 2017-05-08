@@ -1,5 +1,8 @@
 # This example uses hyperdirichlet distribution.
 # first testing 10 dimensional dirichlet distribution.
+
+# WARN: powers_dirichlet and theta_sum_vec should be same length and indices in the same order.
+
 library(dplyr)
 library(tidyr)
 library(stringr)
@@ -76,6 +79,94 @@ Main <- function(DISTR, NUM_CORES=6){
     )
     a=4
     b=4
+  } else if(DISTR=="hyper-data") {
+    zxy_data = as.data.frame(matrix(
+      c(
+        rep(c(0,0,0), 2),
+        rep(c(0,0,1), 10),
+        rep(c(1, 1, 1), 1)
+      ),
+      byrow = TRUE,ncol=3)
+    ) %>%
+      rename(z_vec=V1, x_vec=V2, y_vec=V3)
+    
+    freq_unique_zxy = group_by(zxy_data, z_vec, x_vec, y_vec) %>% 
+      summarize(num_data_points=n()) %>%
+      ungroup() %>%
+      mutate(rowid_str=paste0(z_vec, x_vec, y_vec))
+    param_vec = freq_unique_zxy$num_data_points
+    names(param_vec)=freq_unique_zxy$rowid_str
+    
+
+    
+    r = 24#nrow(freq_unique_zxy)
+    #prior = factorial(r-1)  # CHECK this ..what is r here, number of parameters+-1
+    #log_prior=log(prior)
+    a=4
+    b=2
+    # theta_vec = list(
+    #   "000"=c(0,1,2,3),
+    #   "001"= c(4,5,6,7),
+    #   "010"= c(8,9),
+    #   "011"= c(10,11),
+    #   "100"= c(12,13),
+    #   "101"= c(14,15),
+    #   "110"= c(16,17,18,19),
+    #   "111"= c(20,21,22,23)
+    # )
+    
+    
+    
+    
+    allowed_rx_vals = c(0, 2, 3)
+    allowed_ry_vals = c(0, 1, 2, 3)
+    # if specify a non-uniform prior, then this order will matter.
+    all_unique_thetas_vec = sort(
+      outer(
+        c("0","1"),
+        c(outer(allowed_rx_vals, allowed_ry_vals, paste, sep="_")),
+        paste, sep="_"
+      ) # actual order should not matter as long as we follow the same order throughout this function
+    )
+    
+    #r = 2*length(allowed_rx_vals)*length(allowed_ry_vals)# number of parameters; number of free parameters=23 rx={0,2,3}x ry={0,1,2,3} #xrow(distinct(zxy_data, z_vec, x_vec, y_vec)
+    
+    theta_y_vec = list("000"=c(0,2),
+                       "001"=c(1,3),
+                       "010"=c(0,1),
+                       "011"=c(2,3),
+                       "100"=c(0,2),
+                       "101"=c(1,3),
+                       "110"=c(0,1),
+                       "111"=c(2,3)
+    )
+    theta_vec = list(
+      "000" = paste("0", c( t(outer(c(0,2), theta_y_vec[["000"]], paste, sep="_"))), sep="_"),
+      "001" = paste("0", c( t(outer(c(0,2), theta_y_vec[["001"]], paste, sep="_")) ), sep="_"),
+      "010" = paste("0", c( t(outer(c(3), theta_y_vec[["010"]], paste, sep="_")) ), sep="_"),
+      "011" = paste("0", c( t(outer(c(3), theta_y_vec[["011"]], paste, sep="_")) ), sep="_"),
+      "100" = paste("1", c( t(outer(c(0), theta_y_vec[["100"]], paste, sep="_")) ), sep="_"),
+      "101" = paste("1", c( t(outer(c(0), theta_y_vec[["101"]], paste, sep="_")) ), sep="_"),
+      "110" = paste("1", c( t(outer(c(2,3), theta_y_vec[["110"]], paste, sep="_")) ), sep="_"),
+      "111" = paste("1", c( t(outer(c(2,3), theta_y_vec[["111"]], paste, sep="_")) ), sep="_")
+    )
+    theta_vec_ais = sapply(theta_vec, function(x){sapply(x, function(y){which(all_unique_thetas_vec==y)-1})}) # converting to indices, -1 because c++ indices start at 0
+    
+    #anum_vec = c(4, 4, 2, 2, 2, 2, 4, 4)
+    anum_vec = sapply(theta_vec, length)
+
+    
+    param_vec2 = rep(0, length(theta_vec_ais))
+    names(param_vec2)=names(theta_vec_ais)
+    for(index_id in names(param_vec)){
+      param_vec2[index_id]= param_vec[index_id]
+    }
+    powers_dirichlet = param_vec2
+    n=length(powers_dirichlet)*a/2 +length(powers_dirichlet)*b/2 -1
+    theta_sum_vec = theta_vec_ais
+   # a=4
+  #  b=2
+    
   } else {
     print("Error in distribution")
   }
@@ -179,6 +270,10 @@ dirichlet_integral_formula <- function(DISTR, powers_dirichlet, theta_sum_vec, a
     log_ans = sum(lgamma(powers_dirichlet+1)) - lgamma(length(powers_dirichlet)+sum(powers_dirichlet)) + added_constant
   } else if (DISTR=="hyperdirichlet"){
     log_ans = sum(lgamma(powers_dirichlet+4) - lgamma(4)) - lgamma(4*length(powers_dirichlet)+sum(powers_dirichlet)) + added_constant
+  } else if (DISTR=="hyper-data"){
+    powers1= powers_dirichlet[c("000", "001", "110", "111")]
+    powers2= powers_dirichlet[c("010", "011", "100", "101")]
+    log_ans = sum(lgamma(powers1+4) - lgamma(4)) + sum(lgamma(powers2+2) - lgamma(2)) - lgamma(length(unlist(theta_sum_vec))+sum(powers_dirichlet)) + added_constant 
   }
   return(exp(log_ans))
 }
