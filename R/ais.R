@@ -183,14 +183,16 @@ runC = function(x, betas, fa, fb, transition,
   print(paste("Acceptance ratio", sum_num_actual_changes/sum_num_proposals, sum_num_potential_changes/sum_num_proposals, sum_num_proposals_indomain/sum_num_proposals, sum_num_proposals ))
   # Betas in numerator goes from 1:K
   # Betas in denominator go from 0:(K-1)
-  w = exp(
+  log_w = #exp(
     sum(
       log_pstar(f_as, f_bs, betas) - log_pstar(f_as, f_bs, c(0, betas[-K]))
     ) +
       added_e_power
-  )
+  #)
+  
   #print("Completed run")
-  return(w)
+  #w=exp(log_w)
+  return(log_w)
 }
 
 

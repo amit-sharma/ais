@@ -215,7 +215,7 @@ Main <- function(DISTR, NUM_CORES=6){
       dproposal_cond = getCondDensityFuncXPtr("default")
     }
     
-    ais_weightsC = AISC(
+    log_ais_weightsC = AISC(
       samples = samples, 
       betas = betas, 
       fa=faC,
@@ -230,19 +230,23 @@ Main <- function(DISTR, NUM_CORES=6){
       num_cores=NUM_CORES,
       debug=DEBUG
     )
+    #ais_weightsC=exp(ais_weightsC)
     end_time=Sys.time()
     print(end_time-start_time)
     
     #true_val = generalized_dirichlet_integral(powers_dirichlet, n+1, a,b, uselogscale=TRUE, added_constant=0, do_print=TRUE)
     print(paste("ADDED CONSTANT", added_constant))
     true_val_byformula= dirichlet_integral_formula(DISTR, powers_dirichlet, theta_sum_vec, added_constant=added_constant) 
+    
+    max_log_val = max(log_ais_weightsC)
+    ais_weightsC = exp(log_ais_weightsC-max_log_val)
     val_by_ais = mean(ais_weightsC)
     print(paste("True exact value", true_val_byformula))
-    print(paste("Integration (Mean of AIS weights)", val_by_ais, mean(ais_weightsC, na.rm=TRUE), log(mean(ais_weightsC))))  # Should be close to 1
+    print(paste("Integration (Mean of AIS weights)", val_by_ais*exp(max_log_val), mean(ais_weightsC, na.rm=TRUE)*exp(max_log_val), log(val_by_ais)+max_log_val))  # Should be close to 1
     print(paste("Std Error of the mean", sd(ais_weightsC) / sqrt(length(ais_weightsC)), sd(ais_weightsC, na.rm=TRUE) / sqrt(length(ais_weightsC)) )) # Estimated standard error (hopefully reliable)
     ## Adjusted sample size
     print(paste("Actual, Adjusted sample size", length(ais_weightsC), length(ais_weightsC)/(1+var(ais_weightsC/val_by_ais))))
-    print(paste("Percent error", mean(ais_weightsC)/true_val_byformula*100 - 100))
+    print(paste("Percent error", val_by_ais*exp(max_log_val)/true_val_byformula*100 - 100))
   } 
   
   
