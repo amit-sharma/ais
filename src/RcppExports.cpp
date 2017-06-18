@@ -182,3 +182,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+
+static const R_CallMethodDef CallEntries[] = {
+    {"ais_metropolisC", (DL_FUNC) &ais_metropolisC, 4},
+    {"ais_metropolisC2", (DL_FUNC) &ais_metropolisC2, 6},
+    {"ais_metropolisCbeta", (DL_FUNC) &ais_metropolisCbeta, 7},
+    {"ais_faC", (DL_FUNC) &ais_faC, 1},
+    {"ais_JacobianC", (DL_FUNC) &ais_JacobianC, 1},
+    {"ais_logJacobianC", (DL_FUNC) &ais_logJacobianC, 1},
+    {"ais_log_likelihoodC", (DL_FUNC) &ais_log_likelihoodC, 3},
+    {"ais_e_to_pC", (DL_FUNC) &ais_e_to_pC, 1},
+    {"ais_fbC", (DL_FUNC) &ais_fbC, 2},
+    {"ais_rproposal_distr", (DL_FUNC) &ais_rproposal_distr, 3},
+    {"ais_dbeta_cond_distr", (DL_FUNC) &ais_dbeta_cond_distr, 4},
+    {"ais_putFunPtrInXPtr", (DL_FUNC) &ais_putFunPtrInXPtr, 1},
+    {"ais_getCondDensityFuncXPtr", (DL_FUNC) &ais_getCondDensityFuncXPtr, 1},
+    {"ais_rcpp_hello_world", (DL_FUNC) &ais_rcpp_hello_world, 0},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_ais(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
+}
